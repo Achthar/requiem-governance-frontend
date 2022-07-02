@@ -7,7 +7,6 @@ import { Button, Text, ArrowDownIcon, CardBody, Slider, Box, Flex, useModal, use
 import { RouteComponentProps } from 'react-router'
 import { BigNumber } from '@ethersproject/bignumber'
 import { ABREQ, GREQ, REQT, RREQT, SREQ } from 'config/constants/tokens'
-import { tryParseTokenAmount, tryParseAmount } from 'state/swapV3/hooks'
 import { useTranslation } from 'contexts/Localization'
 import CurrencyInputPanelExpanded from 'components/CurrencyInputPanel/CurrencyInputPanelExpanded'
 import { useGovernanceInfo } from 'state/governance/hooks'
@@ -31,8 +30,8 @@ import useToast from 'hooks/useToast'
 import Column from 'components/Column'
 import { getStartDate, timeConverter } from 'utils/time'
 import { formatSerializedBigNumber } from 'utils/formatBalance'
-import { bn_maxer, get_amount_and_multiplier } from './helper/calculator'
-import LockCard from './components/lock'
+import { Field } from 'config/constants/types'
+import { tryParseAmount, tryParseTokenAmount } from 'utils/numberFormatter'
 import { useWrap, useUnwrap, useStake, useUnstake } from './hooks/transactWithStaking'
 import Page from '../Page'
 import { ColumnCenter } from '../../components/Layout/Column'
@@ -46,8 +45,9 @@ import { useTransactionAdder } from '../../state/transactions/hooks'
 import { getRedRequiemContract } from '../../utils'
 import { useApproveCallback, ApprovalState } from '../../hooks/useApproveCallback'
 import Dots from '../../components/Loader/Dots'
-import { Field } from '../../state/burn/actions'
 import { useGasPrice, useGetAssetBackedRequiemAmount, useGetRequiemAmount, useGetRequiemAmounts, useUserSlippageTolerance } from '../../state/user/hooks'
+
+
 
 
 

@@ -18,10 +18,6 @@ import useActiveWeb3React from 'hooks/useActiveWeb3React'
 import { useNetworkState } from 'state/globalNetwork/hooks'
 import getChain from 'utils/getChain'
 
-import { useBurnActionHandlers } from 'state/burn/hooks'
-import useTotalSupply from '../../hooks/useTotalSupply'
-
-import { useTokenBalance } from '../../state/wallet/hooks'
 import { currencyId } from '../../utils/currencyId'
 import { unwrappedToken } from '../../utils/wrappedCurrency'
 

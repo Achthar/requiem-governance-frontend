@@ -17,7 +17,6 @@ import { useTranslation } from 'contexts/Localization'
 import useActiveWeb3React from 'hooks/useActiveWeb3React'
 import getChain from 'utils/getChain'
 
-import { useBurnActionHandlers } from 'state/burn/hooks'
 import useTotalSupply from '../../hooks/useTotalSupply'
 
 import { useTokenBalance } from '../../state/wallet/hooks'
@@ -150,7 +149,6 @@ export default function FullWeightedPositionCard({ weightedPair, ...props }: Wei
 
   const currency0 = unwrappedToken(weightedPair.token0)
   const currency1 = unwrappedToken(weightedPair.token1)
-  const { onSetFee, onSetWeightA } = useBurnActionHandlers()
 
 
   const chain = getChain(chainId)

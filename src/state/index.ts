@@ -3,27 +3,19 @@ import { save, load } from 'redux-localstorage-simple'
 import { TypedUseSelectorHook, useDispatch, useSelector } from 'react-redux'
 import application from './application/reducer'
 import blockReducer from './block'
-import farmsReducer from './farms'
 import assetBackedStakingReducer from './assetBackedStaking/reducer'
 // import votingReducer from './voting'
 import { updateVersion } from './global/actions'
 import user from './user/reducer'
 import transactions from './transactions/reducer'
-import swapV3 from './swapV3/reducer'
-import bondReducer from './bonds'
 import stablePoolsReducer from './stablePools'
 import weightedPoolsReducer from './weightedPools'
 import globalNetwork from './globalNetwork/reducer'
-import mintStables from './mintStables/reducer'
-import mintPoolLp from './mintPoolLp/reducer'
-import mintWeightedPair from './mintWeightedPair/reducer'
+
 import governance from './governance/reducer'
 import oracles from './oracles/reducer'
 import weightedPairReducer from './weightedPairs'
 import lists from './lists/reducer'
-import burn from './burn/reducer'
-import burnStables from './burnStables/reducer'
-import burnPoolLp from './burnPoolLp/reducer'
 import multicall from './multicall/reducer'
 
 const PERSISTED_KEYS: string[] = ['user', 'transactions', 'lists']
@@ -34,8 +26,6 @@ const store = configureStore({
     globalNetwork,
     application,
     block: blockReducer,
-    bonds: bondReducer,
-    farms: farmsReducer,
     // voting: votingReducer,
     stablePools: stablePoolsReducer,
     weightedPools: weightedPoolsReducer,
@@ -46,13 +36,6 @@ const store = configureStore({
     // Exchange
     user,
     transactions,
-    swapV3,
-    mintStables,
-    mintPoolLp,
-    mintWeightedPair,
-    burn,
-    burnStables,
-    burnPoolLp,
     multicall,
     lists,
   },

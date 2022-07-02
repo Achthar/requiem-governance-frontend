@@ -6,11 +6,9 @@ import { BigNumber, ethers } from 'ethers'
 import useActiveWeb3React from 'hooks/useActiveWeb3React'
 import { SWAP_ROUTER } from '../config/constants'
 import useTokenAllowance, { useTokenAllowances } from './useTokenAllowance'
-import { Field } from '../state/swapV3/actions'
+
 import ERC20_ABI from '../config/abi/erc20.json'
 import { useTransactionAdder, useHasPendingApproval, useHasPendingApprovals } from '../state/transactions/hooks'
-import { computeSlippageAdjustedAmounts } from '../utils/prices'
-import { computeSlippageAdjustedAmountsV3 } from '../utils/pricesV3'
 import { calculateGasMargin, getContract } from '../utils'
 import { useTokenContract } from './useContract'
 import { useCallWithGasPrice } from './useCallWithGasPrice'
@@ -122,21 +120,6 @@ export function useApproveCallback(
 
 
 // wraps useApproveCallback in the context of a swap
-export function useApproveCallbackFromTradeV3(chainId: number, account: string, tradeV3?: Swap, allowedSlippage = 0, networkCcyIn = false) {
-  const amountToApprove = useMemo(
-    () => (tradeV3 ? computeSlippageAdjustedAmountsV3(tradeV3, allowedSlippage)[Field.INPUT] : undefined),
-    [tradeV3, allowedSlippage],
-  )
-  const validatedIn = useMemo(() => amountToApprove && (networkCcyIn ? CurrencyAmount.networkCCYAmount(chainId, amountToApprove.raw) : amountToApprove), [chainId, networkCcyIn, amountToApprove])
-
-  return useApproveCallback(
-    chainId,
-    account,
-    validatedIn,
-    SWAP_ROUTER[chainId]
-  )
-}
-
 
 
 // returns a variable indicating the state of the approval and a function which approves if necessary or early returns

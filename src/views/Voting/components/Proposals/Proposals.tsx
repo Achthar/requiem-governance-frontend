@@ -48,13 +48,7 @@ const Proposals = () => {
 
   return (
     <Container py="40px">
-      <Box mb="48px">
-        <Breadcrumbs>
-          {/* <Link href="/">{t('Home')}</Link> */}
-          <Text>{t('Voting')}</Text>
-        </Breadcrumbs>
-      </Box>
-      <Heading as="h2" scale="xl" mb="32px" id="voting-proposals">
+      <Heading as="h2" scale="xl" mb="32px" id="voting-proposals" mt='30px'>
         {t('Proposals')}
       </Heading>
       <Card>

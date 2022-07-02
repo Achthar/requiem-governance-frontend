@@ -21,12 +21,6 @@ export const useStablePoolReferenceChain = () => {
   return useSelector((state: State) => state.stablePools.referenceChain)
 }
 
-export const useBondFromBondId = (bondId): Bond => {
-
-  const bond = useSelector((state: State) => state.bonds.bondData[bondId])
-  return bond
-}
-
 function generateTokenDict(serializedTokens: SerializedToken[]): { [id: number]: Token } {
   return Object.assign({},
     ...Object.values(serializedTokens).map(

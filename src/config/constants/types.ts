@@ -20,6 +20,16 @@ export const enum ChainGroup {
   AVAX = 'AVAX'
 }
 
+export enum Field {
+  LIQUIDITY_PERCENT = 'LIQUIDITY_PERCENT',
+  LIQUIDITY = 'LIQUIDITY',
+  CURRENCY_A = 'CURRENCY_A',
+  CURRENCY_B = 'CURRENCY_B',
+  WEIGHT_A = 'WEIGHT_A',
+  FEE = 'FEE'
+}
+
+
 export interface TokenInfo {
   readonly chainId: number;
   readonly address: string;

@@ -951,8 +951,6 @@ export interface SerializedFarmsState {
 export interface State {
   achievements: AchievementState
   block: BlockState
-  bonds: BondsState
-  farms: SerializedFarmsState
   // pools: PoolsState
   weightedPairs: WeightedPairState
   stablePools: StablePoolsState
