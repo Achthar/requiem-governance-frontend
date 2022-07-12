@@ -87,18 +87,6 @@ export const getAddressForWeightedPairFactory = (chainId: number) => {
   return getAddress(chainId, addresses.weightedPairFactory);
 }
 
-export const getBondingDepositoryAddress = (chainId: number) => {
-  return getAddress(chainId, addresses.bondDepository)
-}
-
-export const getCallBondingDepositoryAddress = (chainId: number) => {
-  return getAddress(chainId, addresses.callBondDepository)
-}
-
-export const getCallableBondingDepositoryAddress = (chainId: number) => {
-  return getAddress(chainId, addresses.callableBondDepository)
-}
-
 export const getAssetBackedStakingAddress = (chainId: number) => {
   return getAddress(chainId, addresses.staking)
 }

@@ -15,7 +15,6 @@ import {
   getPredictionsContract,
   getChainlinkOracleContract,
   getFarmAuctionContract,
-  getBondingDepositoryContract,
   getRedRequiemContract,
   getRedRequiemStakingContract,
   getAssetBackedStakingContract,
@@ -24,7 +23,7 @@ import {
 
 import { Interface } from '@ethersproject/abi'
 import { Web3Provider } from '@ethersproject/providers'
-import { getBondingDepositoryAddress, getCallableBondingDepositoryAddress, getCallBondingDepositoryAddress, getMulticallAddress } from 'utils/addressHelpers'
+import { getMulticallAddress } from 'utils/addressHelpers'
 // import { useNetworkState } from 'state/globalNetwork/hooks'
 import { REQUIEM_WEIGHTED_FORMULA_ADDRESS } from 'config/constants'
 // Imports below migrated from Exchange useContract.ts
@@ -43,9 +42,6 @@ import WETH_ABI from '../config/abi/weth.json'
 import WAVAX_ABI from '../config/abi/avax/wavax.json'
 import WEIGHTED_FORMULA_ABI from '../config/abi/avax/RequiemFormula.json'
 
-import BOND_DEPO_AVAX from '../config/abi/avax/BondDepository.json'
-import CALL_BOND_DEPO_AVAX from '../config/abi/avax/CallBondDepository.json'
-import CALLABLE_BOND_DEPO_AVAX from '../config/abi/avax/CallableBondDepository.json'
 import multiCallAbi from '../config/abi/Multicall.json'
 import multiCallAbi_AVAX from '../config/abi/avax/Multicall.json'
 import multiCallAbi_QKC from '../config/abi/qkc/Multicall.json'
@@ -215,26 +211,9 @@ export function useWeightedFormulaContract(chainId: number): Contract | null {
   return useContract(chainId ? REQUIEM_WEIGHTED_FORMULA_ADDRESS[chainId] : undefined, new Interface(WEIGHTED_FORMULA_ABI), false)
 }
 
-
-export function useBondContract(chainId: number, withSignerIfPossible?: boolean): Contract | null {
-  return useContract(chainId ? getBondingDepositoryAddress(chainId) : undefined, new Interface(BOND_DEPO_AVAX), withSignerIfPossible)
-}
-
-export function useCallBondContract(chainId: number, withSignerIfPossible?: boolean): Contract | null {
-  return useContract(chainId ? getCallBondingDepositoryAddress(chainId) : undefined, new Interface(CALL_BOND_DEPO_AVAX), withSignerIfPossible)
-}
-
-export function useCallableBondContract(chainId: number, withSignerIfPossible?: boolean): Contract | null {
-  return useContract(chainId ? getCallableBondingDepositoryAddress(chainId) : undefined, new Interface(CALLABLE_BOND_DEPO_AVAX), withSignerIfPossible)
-}
-
 export const useRequiemChef = (chainId, library) => {
   // const { library, chainId } = useActiveWeb3React()
   return useMemo(() => getMasterchefContract(chainId, library.getSigner()), [chainId, library])
-}
-
-export function useBondDepositoryContract(chainId: number, library): Contract | null {
-  return useMemo(() => getBondingDepositoryContract(chainId, library.getSigner()), [chainId, library])
 }
 
 export const useRedRequiemContract = () => {

@@ -109,6 +109,26 @@ const NavContainer: React.FC<NavContainerProps> = ({ isMobile, chainId, onClickI
           Voting
         </StyledNavLink>
       </StyledNavItem>
+      <StyledNavItemDynamic open={open}>
+        {/* <StyledNavLink to={`/${chain}/governance`}> */}
+
+        <StyledNavText onClick={() => { setOpen(!open) }}>
+          <div onClick={() => { setOpen(!open) }} role="button" onKeyPress={() => { return null }}
+            tabIndex={0}>
+            <ImageGov src={iconGovernment} alt='' open={open} />
+          </div>
+          Governance
+        </StyledNavText>
+        <Collapsible open={open} isMobile={isMobile}>
+          <StyledNavLink to={`/${chain}/governance`}>
+            Requiem Reward
+          </StyledNavLink>
+          <StyledNavLink to={`/${chain}/governance-ab`}>
+            Asset-Backed Requiem
+          </StyledNavLink>
+        </Collapsible>
+        {/* </StyledNavLink> */}
+      </StyledNavItemDynamic>
       <StyledNavItem onClick={handleClick}>
         <StyledLinkHref
           href={ExternalLinks.documentations}
@@ -194,7 +214,7 @@ export const getMenuIcon: (label: string) => any = (label) => {
     return bond
   if (label === 'Bonds')
     return bond
-    if (label === 'Voting')
+  if (label === 'Voting')
     return iconGovernment
   return null
 }

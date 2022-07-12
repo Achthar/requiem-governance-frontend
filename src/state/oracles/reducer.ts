@@ -1,9 +1,7 @@
 import { createAsyncThunk, createReducer } from '@reduxjs/toolkit'
 import { getAddress } from 'ethers/lib/utils'
 import { SerializedBigNumber } from 'state/types'
-import { getCallBondingDepositoryAddress } from 'utils/addressHelpers'
 import multicall from 'utils/multicall'
-import bondReserveAVAX from 'config/abi/avax/CallBondDepository.json'
 import { OracleConfig, oracleConfig } from 'config/constants/oracles'
 
 
@@ -44,7 +42,7 @@ export const fetchOracleDataFromBond = createAsyncThunk<{ oracles: { [address: s
   'oracles/fetchOracleDataFromBond',
   async ({ chainId, oracleAddresses }) => {
     const addresses = oracleAddresses.map(ad => getAddress(ad))
-    const callDepoAddress = getCallBondingDepositoryAddress(chainId)
+    const callDepoAddress = 'getCallBondingDepositoryAddress(chainId)'
 
     const oracleCalls = addresses.map(_orclAddr => {
       return {
@@ -55,7 +53,7 @@ export const fetchOracleDataFromBond = createAsyncThunk<{ oracles: { [address: s
     })
 
 
-    const oracleRawData = await multicall(chainId, bondReserveAVAX, oracleCalls)
+    const oracleRawData = [] // await multicall(chainId, bondReserveAVAX, oracleCalls)
 
     return {
       oracles: Object.assign({}, ...addresses.map((adr, index) => {

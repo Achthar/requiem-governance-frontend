@@ -4,17 +4,12 @@ import { ethers, BigNumber, BigNumberish } from 'ethers'
 import { getAddress } from 'ethers/lib/utils';
 import { addresses } from 'config/constants/contracts';
 import multicall from 'utils/multicall';
-import bondReserveAVAX from 'config/abi/avax/BondDepository.json'
 import weightedPoolAVAX from 'config/abi/avax/WeightedPool.json'
 import erc20 from 'config/abi/erc20.json'
 import { weightedSwapInitialData } from 'config/constants/weightedPool';
 import { BondAssetType } from 'config/constants/types';
 import { Fraction, TokenAmount } from '@requiemswap/sdk';
 import { BondsState, Bond, PoolConfig, SerializedWeightedPool } from '../types'
-
-const E_NINE = BigNumber.from('1000000000')
-const E_EIGHTEEN = BigNumber.from('1000000000000000000')
-
 
 interface PoolRequestData {
   chainId: number

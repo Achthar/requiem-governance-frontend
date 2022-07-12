@@ -1,29 +1,16 @@
 /** eslint no-empty-interface: 0 */
 import { createAsyncThunk, createSlice } from '@reduxjs/toolkit'
 import { useMemo } from 'react';
-import { deserializeToken } from 'state/user/hooks/helpers';
-import { getContractForBondDepo, getContractForLpReserve } from 'utils/contractHelpers';
 import { ethers, BigNumber, BigNumberish } from 'ethers'
-import { getAddress } from 'ethers/lib/utils';
-import { addresses } from 'config/constants/contracts';
 import multicall from 'utils/multicall';
 import redRequiemAvax from 'config/abi/avax/RedRequiem.json'
-import weightedPairABI from 'config/abi/avax/RequiemWeightedPair.json'
-import { BondAssetType } from 'config/constants/types';
 import { getRedRequiemAddress, getRedRequiemStakingAddress } from 'utils/addressHelpers';
 import { SerializedBigNumber } from 'state/types';
-
-
-const E_NINE = BigNumber.from('1000000000')
-const E_EIGHTEEN = BigNumber.from('1000000000000000000')
-
-
 
 export interface GovernanceUserRequest {
   chainId: number
   account: string
 }
-
 
 export interface GovernanceResponse {
   lock: {

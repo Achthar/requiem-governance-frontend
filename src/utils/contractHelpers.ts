@@ -18,15 +18,12 @@ import {
   getRequiemAddress,
   getStableSwapAddress,
   getAddressForReserve,
-  getAddressForBondingCalculator,
   getAddressForWeightedPairFactory,
   getAddressForLpReserve,
-  getBondingDepositoryAddress,
   getRedRequiemStakingAddress,
   getRedRequiemAddress,
   getAssetBackedStakingAddress,
-  getCallBondingDepositoryAddress,
-  getCallableBondingDepositoryAddress
+
 } from 'utils/addressHelpers'
 
 // ABI base
@@ -53,10 +50,6 @@ import bondStaking from 'config/abi/avax/Staking.json'
 import { Pool, StablePool } from '@requiemswap/sdk'
 
 import weightedFactoryOASIS from 'config/abi/oasis/RequiemWeightedPairFactory.json'
-
-import bondReserveAVAX from 'config/abi/avax/BondDepository.json'
-import callBondReserveAVAX from 'config/abi/avax/CallBondDepository.json'
-import callableBondReserveAVAX from 'config/abi/avax/CallableBondDepository.json'
 
 import redRequiem from 'config/abi/avax/RedRequiem.json'
 import redRequiemStaking from 'config/abi/avax/RedRequiemStaking.json'
@@ -173,29 +166,6 @@ export const getWeightedPairFactory = (chainId: number, signer?: ethers.Signer |
   const factoryAddress = getAddressForWeightedPairFactory(chainId) || "";
   const ABI = new Interface(chainId === 43113 ? weightedFactoryAVAX : weightedFactoryOASIS)
   return new ethers.Contract(factoryAddress, ABI, signer);
-}
-
-
-export const getContractForBondDepo = (chainId: number, signer?: ethers.Signer | ethers.providers.Provider) => {
-  const bondAddress = getBondingDepositoryAddress(chainId) || "";
-  const ABI = new Interface(bondReserveAVAX)
-  return new ethers.Contract(bondAddress, ABI, signer);
-}
-
-export const getContractForCallBondDepo = (chainId: number, signer?: ethers.Signer | ethers.providers.Provider) => {
-  const bondAddress = getCallBondingDepositoryAddress(chainId) || "";
-  const ABI = new Interface(callBondReserveAVAX)
-  return new ethers.Contract(bondAddress, ABI, signer);
-}
-
-export const getContractForCallableBondDepo = (chainId: number, signer?: ethers.Signer | ethers.providers.Provider) => {
-  const bondAddress = getCallableBondingDepositoryAddress(chainId) || "";
-  const ABI = new Interface(callableBondReserveAVAX)
-  return new ethers.Contract(bondAddress, ABI, signer);
-}
-
-export const getBondingDepositoryContract = (chainId: number, bondType:BondType, signer?: ethers.Signer | ethers.providers.Provider) => {
-  return getContract(chainId, chainId === 43113 ? new Interface(bondReserveAVAX) : bondReserveAVAX, getBondingDepositoryAddress(chainId), signer)
 }
 
 export const getRedRequiemContract = (chainId: number, signer?: ethers.Signer | ethers.providers.Provider) => {
