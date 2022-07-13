@@ -381,163 +381,163 @@ export default function Governance({
           noConfig
         />
         <Flex flexDirection={isMobile ? 'column' : 'row-reverse'} marginRight={isMobile ? '0px' : '20px'} marginTop='10px' alignItems='space-between' justifyContent='space-between'>
-          <Flex maxHeight='1150px' flexDirection='column'>
+          <Flex maxHeight='1150px' flexDirection='column' marginLeft={isMobile ? '' : '60px'} >
             {/* <AppBody> */}
-              <Row width='100%' height='50px' marginTop='3px'>
-                <Button
-                  onClick={() => {
-                    toggleLock(false)
-                    toggleLockId(0)
-                    setAction(Action.createLock)
-                  }}
-                  variant={lock && lock.end > 0 ? "secondary" : "primary"}
-                  width="100%"
-                  mb="8px"
-                  style={{ borderTopRightRadius: '3px', borderBottomRightRadius: '3px', marginLeft: '3px', marginRight: '3px', marginBottom: '5px' }}
-                >
-                  Create Lock
-                </Button>
-                <Button
-                  onClick={() => {
-                    setAction(Action.increaseTime)
-                  }}
-                  variant={!lockSelected ? "secondary" : "primary"}
-                  width="100%"
-                  mb="8px"
-                  style={{ borderRadius: '3px', marginLeft: '3px', marginRight: '3px', marginBottom: '5px' }}
-                  disabled={action === Action.increaseTime || !lockSelected || !account}
-                >
-                  {!account ? 'Connect' : !lockSelected ? 'Select Lock' : (lock?.end < now) ? 'Lock expired' : 'Increase Time'}
-                </Button>
-                <Button
-                  onClick={() => {
-                    setAction(Action.increaseAmount)
-                    onCurrencyInput('0')
-                  }}
-                  variant="secondary"
-                  width="100%"
-                  mb="8px"
-                  disabled={action === Action.increaseAmount || !lockSelected || !account}
-                  style={{ borderTopLeftRadius: '3px', borderBottomLeftRadius: '3px', marginLeft: '3px', marginRight: '3px', marginBottom: '5px' }}
-                >
-                  {!account ? 'Connect' : !lockSelected ? 'Select Lock' : (lock?.end < now) ? 'Lock expired' : 'Increase Amount'}
-                </Button>
-              </Row>
-              {account && lockSelected ? (
+            <Row width='100%' height='50px' marginTop='3px'>
+              <Button
+                onClick={() => {
+                  toggleLock(false)
+                  toggleLockId(0)
+                  setAction(Action.createLock)
+                }}
+                variant={lock && lock.end > 0 ? "secondary" : "primary"}
+                width="100%"
+                mb="8px"
+                style={{ borderTopRightRadius: '3px', borderBottomRightRadius: '3px', marginLeft: '3px', marginRight: '3px', marginBottom: '5px' }}
+              >
+                Create Lock
+              </Button>
+              <Button
+                onClick={() => {
+                  setAction(Action.increaseTime)
+                }}
+                variant={!lockSelected ? "secondary" : "primary"}
+                width="100%"
+                mb="8px"
+                style={{ borderRadius: '3px', marginLeft: '3px', marginRight: '3px', marginBottom: '5px' }}
+                disabled={action === Action.increaseTime || !lockSelected || !account}
+              >
+                {!account ? 'Connect' : !lockSelected ? 'Select Lock' : (lock?.end < now) ? 'Lock expired' : 'Increase Time'}
+              </Button>
+              <Button
+                onClick={() => {
+                  setAction(Action.increaseAmount)
+                  onCurrencyInput('0')
+                }}
+                variant="secondary"
+                width="100%"
+                mb="8px"
+                disabled={action === Action.increaseAmount || !lockSelected || !account}
+                style={{ borderTopLeftRadius: '3px', borderBottomLeftRadius: '3px', marginLeft: '3px', marginRight: '3px', marginBottom: '5px' }}
+              >
+                {!account ? 'Connect' : !lockSelected ? 'Select Lock' : (lock?.end < now) ? 'Lock expired' : 'Increase Amount'}
+              </Button>
+            </Row>
+            {account && lockSelected ? (
 
-                <>
-                  <BorderCard>
-                    <Text bold textAlign='center'>{`Manage the ${timeConverter(lock?.end) ?? ''} lock`}</Text>
-                    <LockCard
-                      chainId={chainId}
-                      account={account}
-                      lock={lock}
-                      onSelect={() => { return null }}
-                      reqPrice={reqPrice}
-                      refTime={now}
-                      isFirst
-                      isLast
-                      selected
-                      hideSelect
-                      approval={null}
-                      approveCallback={() => { return null }}
-                      hideActionButton
-                    />
-                  </BorderCard>
-                </>
-              ) : (<Text textAlign='center' marginTop='5px'>{account ? 'No lock selected' : 'Connect to manage your lock(s)'}</Text>)
-              }
-              <CardBody>
-                <LockConfigurator
-                  lock={lock}
-                  selectMaturity={onSelectMaturity}
-                  startTime={configStartDate}
-                  selectedMaturity={maturity}
-                  isMobile={isMobile}
-                  action={action}
-                  now={now}
+              <>
+                <BorderCard>
+                  <Text bold textAlign='center'>{`Manage the ${timeConverter(lock?.end) ?? ''} lock`}</Text>
+                  <LockCard
+                    chainId={chainId}
+                    account={account}
+                    lock={lock}
+                    onSelect={() => { return null }}
+                    reqPrice={reqPrice}
+                    refTime={now}
+                    isFirst
+                    isLast
+                    selected
+                    hideSelect
+                    approval={null}
+                    approveCallback={() => { return null }}
+                    hideActionButton
+                  />
+                </BorderCard>
+              </>
+            ) : (<Text textAlign='center' marginTop='5px'>{account ? 'No lock selected' : 'Connect to manage your lock(s)'}</Text>)
+            }
+            <CardBody>
+              <LockConfigurator
+                lock={lock}
+                selectMaturity={onSelectMaturity}
+                startTime={configStartDate}
+                selectedMaturity={maturity}
+                isMobile={isMobile}
+                action={action}
+                now={now}
+              />
+              <Box my="16px">
+                <CurrencyInputPanelExpanded
+                  balanceText={action === Action.increaseTime ? 'Locked' : 'Balance'}
+                  balances={{ [ABREQ[chainId].address]: action === Action.increaseTime ? lockedAmount : balance }}
+                  isLoading={isLoading}
+                  chainId={chainId}
+                  account={account}
+                  value={inputValue}
+                  onUserInput={onCurrencyInput}
+                  onMax={() => onCurrencyInput((action === Action.increaseTime ? lockedAmount : balance)?.toSignificant(18))}
+                  showMaxButton={!atMaxAmount}
+                  currency={tokenA}
+                  label={action === Action.increaseTime ? `Select amount ${tokenA.symbol} locked` : 'Input'}
+                  // hideInput={action === Action.increaseTime}
+                  // reducedLine={action === Action.increaseTime}
+                  onCurrencySelect={() => { return null }}
+                  disableCurrencySelect
+                  id="input to lock"
                 />
-                <Box my="16px">
-                  <CurrencyInputPanelExpanded
-                    balanceText={action === Action.increaseTime ? 'Locked' : 'Balance'}
-                    balances={{ [ABREQ[chainId].address]: action === Action.increaseTime ? lockedAmount : balance }}
-                    isLoading={isLoading}
-                    chainId={chainId}
-                    account={account}
-                    value={inputValue}
-                    onUserInput={onCurrencyInput}
-                    onMax={() => onCurrencyInput((action === Action.increaseTime ? lockedAmount : balance)?.toSignificant(18))}
-                    showMaxButton={!atMaxAmount}
-                    currency={tokenA}
-                    label={action === Action.increaseTime ? `Select amount ${tokenA.symbol} locked` : 'Input'}
-                    // hideInput={action === Action.increaseTime}
-                    // reducedLine={action === Action.increaseTime}
-                    onCurrencySelect={() => { return null }}
-                    disableCurrencySelect
-                    id="input to lock"
-                  />
-                  <ColumnCenter>
-                    <ArrowDownIcon width="24px" my="16px" />
-                  </ColumnCenter>
-                  <CurrencyInputPanel
-                    chainId={chainId}
-                    account={account}
-                    hideBalance
-                    value={formattedAmounts[Field.CURRENCY_B]}
-                    onUserInput={() => { return null }}
+                <ColumnCenter>
+                  <ArrowDownIcon width="24px" my="16px" />
+                </ColumnCenter>
+                <CurrencyInputPanel
+                  chainId={chainId}
+                  account={account}
+                  hideBalance
+                  value={formattedAmounts[Field.CURRENCY_B]}
+                  onUserInput={() => { return null }}
 
-                    onMax={() => { return null }}
-                    showMaxButton={false}
-                    currency={tokenB}
-                    label='Received Governance Requiem'
-                    disableCurrencySelect
-                    onCurrencySelect={() => { return null }}
-                    id="token for accounting"
-                  />
-                </Box>
-                <Box position="relative" mt="16px">
-                  {!account ? (
-                    <ConnectWalletButton align='center' height='27px' width='100%' />
-                  ) : (
-                    <RowBetween>
-                      <Button
-                        variant={approval === ApprovalState.APPROVED || signatureData !== null ? 'success' : 'primary'}
-                        onClick={approveCallback} // {onAttemptToApprove}
-                        disabled={approval !== ApprovalState.NOT_APPROVED || signatureData !== null}
-                        width="100%"
-                        mr="0.5rem"
-                      >
-                        {approval === ApprovalState.PENDING ? (
-                          <Dots>Enabling</Dots>
-                        ) : approval === ApprovalState.APPROVED || signatureData !== null ? (
-                          'Enabled'
-                        ) : (
-                          'Enable'
-                        )}
-                      </Button>
-                      <Button
-                        variant={
-                          (!!parsedAmounts[Field.CURRENCY_A] && !!parsedAmounts[Field.CURRENCY_B]) || (action === Action.increaseTime)
-                            ? 'primary'
-                            : 'danger'
-                        }
-                        onClick={() => {
-                          transactionFunc()
-                        }}
-                        width="100%"
-                        disabled={(approval !== ApprovalState.APPROVED) || pendingTx}
-                      >
-                        {!pendingTx ? buttonText : (
-                          <Dots>
-                            {pendingText}
-                          </Dots>
-                        )}
-                      </Button>
-                    </RowBetween>
-                  )}
-                </Box>
+                  onMax={() => { return null }}
+                  showMaxButton={false}
+                  currency={tokenB}
+                  label='Received Governance Requiem'
+                  disableCurrencySelect
+                  onCurrencySelect={() => { return null }}
+                  id="token for accounting"
+                />
+              </Box>
+              <Box position="relative" mt="16px">
+                {!account ? (
+                  <ConnectWalletButton align='center' height='27px' width='100%' />
+                ) : (
+                  <RowBetween>
+                    <Button
+                      variant={approval === ApprovalState.APPROVED || signatureData !== null ? 'success' : 'primary'}
+                      onClick={approveCallback} // {onAttemptToApprove}
+                      disabled={approval !== ApprovalState.NOT_APPROVED || signatureData !== null}
+                      width="100%"
+                      mr="0.5rem"
+                    >
+                      {approval === ApprovalState.PENDING ? (
+                        <Dots>Enabling</Dots>
+                      ) : approval === ApprovalState.APPROVED || signatureData !== null ? (
+                        'Enabled'
+                      ) : (
+                        'Enable'
+                      )}
+                    </Button>
+                    <Button
+                      variant={
+                        (!!parsedAmounts[Field.CURRENCY_A] && !!parsedAmounts[Field.CURRENCY_B]) || (action === Action.increaseTime)
+                          ? 'primary'
+                          : 'danger'
+                      }
+                      onClick={() => {
+                        transactionFunc()
+                      }}
+                      width="100%"
+                      disabled={(approval !== ApprovalState.APPROVED) || pendingTx}
+                    >
+                      {!pendingTx ? buttonText : (
+                        <Dots>
+                          {pendingText}
+                        </Dots>
+                      )}
+                    </Button>
+                  </RowBetween>
+                )}
+              </Box>
 
-              </CardBody>
+            </CardBody>
 
             {/* </AppBody> */}
           </Flex>

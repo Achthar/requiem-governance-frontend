@@ -5,7 +5,7 @@ import { Box, Card } from '@requiemswap/uikit'
 export const BodyWrapper = styled(Box) <{ isMobile: boolean }>`
 background-color: rgba(0, 0, 0, 0.25);
 border-radius: 24px;
-max-width: ${({ isMobile }) => isMobile ? '436px': '900px'};
+max-width: ${({ isMobile }) => isMobile ? '436px': '1000px'};
 width: 100%;
 z-index: 1;
 ${({ isMobile }) => isMobile ? '': 'max-height: 1300px'}
