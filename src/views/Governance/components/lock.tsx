@@ -6,7 +6,7 @@ import { DeserializedFarm } from 'state/types'
 import { useTranslation } from 'contexts/Localization'
 import ExpandableSectionButton from 'components/ExpandableSectionButton'
 import { getFullDisplayBalance, formatNumber, formatSerializedBigNumber, formatBigNumber, formatGeneralNumber } from 'utils/formatBalance'
-import { fetchGovernanceData } from 'state/governance/fetchGovernanceData'
+import { fetchGovernanceUserDetails } from 'state/governance/fetchGovernanceUserDetails'
 import { useAppDispatch } from 'state'
 import useToast from 'hooks/useToast'
 import Dots from 'components/Loader/Dots'
@@ -29,18 +29,21 @@ const StyledButton = styled(Button) <{ mB: string, width: string }>`
   color: none;
   height: 25px;
   box-shadow: none;
-  border-radius: 2px;
+  border-radius: 5px;
   width: ${({ width }) => width};
   align: right;
   marginBottom: ${({ mB }) => mB};
 `
 
-const ApprovalButton = styled(Button)`
-  background-color:none;
-  color: none;
+const ApprovalButton = styled(Button) <{ emergency: boolean }>`
+  background-color:${({ emergency }) => emergency ? 'linear-gradient(red, black)' : 'none'};
+  ${({ emergency }) => emergency ? 'background-image:linear-gradient(rgba(128, 0, 0, 0.76), black);' : ''}
+  color: ${({ emergency }) => emergency ? 'white' : 'none'};
+  border: none;
   height: 25px;
   box-shadow: none;
-  border-radius: 2px;
+  border-radius: 16px;
+  width: 95%;
 `
 
 
@@ -113,7 +116,7 @@ const LockHeading: React.FC<LockHeaderProps> = ({ onSelect, lock, refTime, hideS
             <Skeleton ml="4px" width={42} height={28} />
           )}
         </Flex> */}
-        {!hideSelect ? (<StyledButton onClick={onSelect} > Select </StyledButton>) : (<Text> Selected </Text>)}
+        {!hideSelect ? (<StyledButton onClick={onSelect} > Manage </StyledButton>) : (<Text> Selected </Text>)}
       </Flex>
     </>
   )
@@ -137,7 +140,7 @@ const LockCard: React.FC<LockCardProps> = ({
       await onWithdraw(_lock)
     }
     toggleLock(false)
-    dispatch(fetchGovernanceData({ chainId, account }))
+    dispatch(fetchGovernanceUserDetails({ chainId, account }))
   }
   if (!lock)
     return null;
@@ -162,21 +165,25 @@ const LockCard: React.FC<LockCardProps> = ({
           <Text size='5px'>Minted</Text>
           <Text >{formatGeneralNumber(formatSerializedBigNumber(lock.minted, 10, 18), 2)}</Text>
         </Flex>
-        <Flex justifyContent="space-between">
+        {/* <Flex justifyContent="space-between">
           <Text size='5px'>Multiplier</Text>
           <Text >{`${formatGeneralNumber(formatSerializedBigNumber(lock.multiplier, 10, 18), 2)}x`}</Text>
-        </Flex>
+        </Flex> */}
         {!hideApproval && (approval !== ApprovalState.APPROVED ? (
           <ApprovalButton
+            emergency={lock.end - refTime > 0}
             variant='primary'
             onClick={approveCallback} // {onAttemptToApprove}
             disabled={approval !== ApprovalState.NOT_APPROVED}
             width="100%"
             mr="0.5rem"
-          >Approve withdrawl</ApprovalButton>
+          >
+            Approve withdrawl
+          </ApprovalButton>
 
         ) : (
           <ApprovalButton
+            emergency={lock.end - refTime > 0}
             variant='primary'
             onClick={async () => {
               setPendingTx(true)

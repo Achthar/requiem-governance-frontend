@@ -127,9 +127,9 @@ export const SREQ: { [chainId: number]: Token } = {
 export const GREQ: { [chainId: number]: Token } = {
   [ChainId.AVAX_TESTNET]: new Token(
     ChainId.AVAX_TESTNET,
-    '0x147F7feF8C1c46B7Fc9eE790eE95A041F255F022',
+    '0x713732D64F6d2c6FA12eA6642F72F030753f699e',
     18,
-    'gREQ',
+    'GREQ',
     'Governance Requiem',
   ),
 }

@@ -14,7 +14,7 @@ import { BASE_EXPLORER_URLS, ChainId } from '../config'
 import { TokenAddressMap } from '../state/lists/hooks'
 import SwapRouter from '../config/abi/avax/SwapRouter.json'
 import WeightedPoolABI from '../config/abi/avax/WeightedPool.json'
-import { getRedRequiemAddress } from './addressHelpers'
+import { getGovernanceRequiemAddress } from './addressHelpers'
 
 // returns the checksummed address if the address is valid, otherwise returns false
 export function isAddress(value: any): string | false {
@@ -130,7 +130,7 @@ export function getWeightedPoolContract(pool: WeightedPool, library: Web3Provide
 
 export function getRedRequiemContract(chainId: number, library: Web3Provider, account?: string): Contract {
   const ABI = RedRequiem
-  return getContract(getRedRequiemAddress(chainId), ABI, library, account)
+  return getContract(getGovernanceRequiemAddress(chainId), ABI, library, account)
 }
 
 

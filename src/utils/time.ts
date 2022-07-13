@@ -22,7 +22,7 @@ function getNextFriday(date = new Date()) {
 }
 
 
-const maxMonths = 12 * 3
+const maxMonths = 13
 
 const maxFridays = 52 * 2
 

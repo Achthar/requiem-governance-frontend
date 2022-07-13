@@ -30,6 +30,7 @@ const BorderCard = styled.div`
 `
 
 const DropdownContainer = styled.div`
+  z-index:10;
   margin-left:4px
   width: 100%;
   height: 24px;
@@ -82,19 +83,26 @@ interface ButtonRowProps {
     selectMaturity: (inp: number) => void
     maxTimeInput: number
     dates: DateEntry[]
+    cutOff: number
 }
 
 const ButtonRow: React.FC<ButtonRowProps> = ({
     selectMaturity,
     maxTimeInput,
-    dates
+    dates,
+    cutOff
 }) => {
     return (
         <>
             <Flex flexWrap="wrap" justifyContent="space-evenly" marginBottom='10px'>
                 {dates.map(entry => {
                     return (
-                        <Button variant="tertiary" scale="sm" onClick={() => selectMaturity(Math.min(entry.unix, maxTimeInput))} width='110px'>
+                        <Button
+                            variant="tertiary"
+                            scale="sm"
+                            onClick={() => selectMaturity(Math.min(entry.unix, maxTimeInput))}
+                            width='110px'
+                            disabled={entry.unix < cutOff}>
                             {entry.month}
                         </Button>
                     )
@@ -107,14 +115,21 @@ const ButtonRow: React.FC<ButtonRowProps> = ({
 const ButtonRowWeeklies: React.FC<ButtonRowProps> = ({
     selectMaturity,
     maxTimeInput,
-    dates
+    dates,
+    cutOff
 }) => {
     return (
         <>
             <Flex flexWrap="wrap" justifyContent="space-evenly" marginBottom='10px'>
                 {dates.map(entry => {
                     return (
-                        <Button variant="tertiary" scale="sm" onClick={() => selectMaturity(Math.min(entry.unix, maxTimeInput))} width='110px'>
+                        <Button
+                            variant="tertiary"
+                            scale="sm"
+                            onClick={() => selectMaturity(Math.min(entry.unix, maxTimeInput))}
+                            width='110px'
+                            disabled={entry.unix < cutOff}
+                        >
                             {`${entry.month} ${entry.date}`}
                         </Button>
                     )
@@ -131,13 +146,19 @@ const ButtonContainerYear = ({
     selectMaturity,
     selectedTimeFrame,
     maxTimeInput,
-    dates
+    dates,
+    cutOff
 }: ButtonContainerProps) => {
     const dateRows = sliceIntoChunks(dates.filter(date => date.year === Number(selectedTimeFrame)), splitAt)
     return (
         < >
             {dateRows.map(dateRow => {
-                return <ButtonRow selectMaturity={selectMaturity} maxTimeInput={maxTimeInput} dates={dateRow} />
+                return <ButtonRow
+                    selectMaturity={selectMaturity}
+                    maxTimeInput={maxTimeInput}
+                    dates={dateRow}
+                    cutOff={cutOff}
+                />
             })}
         </>
     )
@@ -149,13 +170,19 @@ const ButtonContainerMonths = ({
     selectMaturity,
     selectedTimeFrame,
     maxTimeInput,
-    dates
+    dates,
+    cutOff
 }: ButtonContainerProps) => {
     const dateRows = sliceIntoChunks(dates.filter(date => date.aod === selectedTimeFrame), splitAt)
     return (
         < >
             {dateRows.map(dateRow => {
-                return <ButtonRowWeeklies selectMaturity={selectMaturity} maxTimeInput={maxTimeInput} dates={dateRow} />
+                return <ButtonRowWeeklies
+                    selectMaturity={selectMaturity}
+                    maxTimeInput={maxTimeInput}
+                    dates={dateRow}
+                    cutOff={cutOff}
+                />
             })}
         </>
     )
@@ -240,23 +267,41 @@ export const LockConfigurator: React.FC<LockConfiguratorProps> = ({
     const months = [...new Set(fridays.map(d => d.aod))]
 
     const day = 24 * 3600
-    const timeDiff = useMemo(() => { return (selectedMaturity - now) / 3600 / 24 }, [selectedMaturity, now])
+    const [timeDiff, cutOff] = useMemo(() => {
+        if (lock) {
+            switch (action) {
+                case Action.increaseTime: {
+                    return [(selectedMaturity - lock.end) / 3600 / 24, lock.end]
+                }
+                case Action.createLock: {
+                    return [(selectedMaturity - now) / 3600 / 24, now]
+                }
+                case Action.increaseAmount: {
+                    return [(selectedMaturity - now) / 3600 / 24, now]
+                }
+                default: {
+                    return [(selectedMaturity - now) / 3600 / 24, now]
+                }
+            }
+        } else return [(selectedMaturity - now) / 3600 / 24, now]
+    },
+        [selectedMaturity, action, now, lock])
 
     const max = selectedScale === Scale.monthly ? dates[dates.length - 1].unix : dates[dates.length - 1].unix
 
     return (
-        <AutoColumn gap="20px">
+        <Flex maxWidth={isMobile ? '400px' : '100%'} flexDirection='column'>
             <BorderCard>
                 {(action !== Action.increaseAmount) ?
                     (
                         <>
-                            <Text fontSize="20px" bold mb="16px" style={{ lineHeight: 1 }}>
+                            <Text fontSize="16px" bold mb="16px" style={{ lineHeight: 1 }}>
                                 {action !== Action.increaseTime ? 'Define your lock period and amount to lock.' : ' Select time to add to your lock.'}
                             </Text>
 
-                            <Text fontSize="25px" bold mb="16px" style={{ lineHeight: 1 }}>
+                            <Text fontSize="20px" bold mb="16px" style={{ lineHeight: 1 }}>
                                 {action !== Action.increaseTime ? `${Math.round(timeDiff * 100 / 365) / 100} year(s)` :
-                                    `Extend lock to ${Math.round((timeDiff + timeDiff / 3600 / 24) * 100 / 365) / 100} year(s)`}
+                                    `Extend lock to ${Math.round(((lock.end - now) / 3600 / 24 + timeDiff) * 100 / 365) / 100} year(s)`}
                             </Text>
                             <Text fontSize="20px" bold mb="16px" style={{ lineHeight: 1 }}>
                                 {action !== Action.increaseTime ? `${Math.round(timeDiff * 100) / 100} days` : ` Add ${Math.round(timeDiff * 100) / 100} days to Lock`}
@@ -284,6 +329,7 @@ export const LockConfigurator: React.FC<LockConfiguratorProps> = ({
 
                                     {selectedScale === Scale.monthly ?
                                         ButtonContainerYear({
+                                            cutOff,
                                             splitAt: 3,
                                             selectMaturity,
                                             maxTimeInput: max,
@@ -291,6 +337,7 @@ export const LockConfigurator: React.FC<LockConfiguratorProps> = ({
                                             selectedTimeFrame: selectedYear
                                         }) :
                                         ButtonContainerMonths({
+                                            cutOff,
                                             splitAt: 3,
                                             selectMaturity,
                                             maxTimeInput: max,
@@ -308,6 +355,7 @@ export const LockConfigurator: React.FC<LockConfiguratorProps> = ({
                                     </Flex>
                                     {selectedScale === Scale.monthly ?
                                         ButtonContainerYear({
+                                            cutOff,
                                             splitAt: 2,
                                             selectMaturity,
                                             maxTimeInput: max,
@@ -315,6 +363,7 @@ export const LockConfigurator: React.FC<LockConfiguratorProps> = ({
                                             selectedTimeFrame: selectedYear
                                         }) :
                                         ButtonContainerMonths({
+                                            cutOff,
                                             splitAt: 2,
                                             selectMaturity,
                                             maxTimeInput: max,
@@ -351,6 +400,6 @@ export const LockConfigurator: React.FC<LockConfiguratorProps> = ({
                     )
                 }
             </BorderCard>
-        </AutoColumn>
+        </Flex >
     )
 }

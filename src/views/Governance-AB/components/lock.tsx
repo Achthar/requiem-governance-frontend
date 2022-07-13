@@ -6,7 +6,7 @@ import { DeserializedFarm } from 'state/types'
 import { useTranslation } from 'contexts/Localization'
 import ExpandableSectionButton from 'components/ExpandableSectionButton'
 import { getFullDisplayBalance, formatNumber, formatSerializedBigNumber, formatBigNumber, formatGeneralNumber } from 'utils/formatBalance'
-import { fetchGovernanceData } from 'state/governance/fetchGovernanceData'
+// import { fetchGovernanceUserData } from 'state/governance/fetchGovernanceData'
 import { useAppDispatch } from 'state'
 import useToast from 'hooks/useToast'
 import Dots from 'components/Loader/Dots'
@@ -137,7 +137,7 @@ const LockCard: React.FC<LockCardProps> = ({
       await onWithdraw(_lock)
     }
     toggleLock(false)
-    dispatch(fetchGovernanceData({ chainId, account }))
+    // dispatch(fetchGovernanceUserData({ chainId, account }))
   }
   if (!lock)
     return null;
@@ -162,10 +162,10 @@ const LockCard: React.FC<LockCardProps> = ({
           <Text size='5px'>Minted</Text>
           <Text >{formatGeneralNumber(formatSerializedBigNumber(lock.minted, 10, 18), 2)}</Text>
         </Flex>
-        <Flex justifyContent="space-between">
+        {/* <Flex justifyContent="space-between">
           <Text size='5px'>Multiplier</Text>
           <Text >{`${formatGeneralNumber(formatSerializedBigNumber(lock.multiplier, 10, 18), 2)}x`}</Text>
-        </Flex>
+        </Flex> */}
         {!hideApproval && (approval !== ApprovalState.APPROVED ? (
           <ApprovalButton
             variant='primary'

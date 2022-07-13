@@ -2,17 +2,17 @@
 import { createAsyncThunk } from '@reduxjs/toolkit'
 import { ethers, BigNumber } from 'ethers'
 import multicall from 'utils/multicall';
-import redRequiemAvax from 'config/abi/avax/BloodRedRequiem.json'
-import { getRedRequiemAddress, getRedRequiemStakingAddress } from 'utils/addressHelpers';
+import redRequiemAvax from 'config/abi/avax/GovernanceRequiem.json'
+import { getGovernanceRequiemAddress, getRedRequiemStakingAddress } from 'utils/addressHelpers';
 import { SerializedBigNumber } from 'state/types';
+import { ABREQ } from 'config/constants/tokens';
 
 
 const E_NINE = BigNumber.from('1000000000')
 const E_EIGHTEEN = BigNumber.from('1000000000000000000')
 
-export interface GovernanceUserRequest {
+export interface GovernancePublicRequest {
   chainId: number
-  account: string
 }
 
 export interface GovernanceLock {
@@ -20,69 +20,51 @@ export interface GovernanceLock {
   end: number
   minted: SerializedBigNumber
   multiplier: SerializedBigNumber
+  id: number
 }
 
-export interface GovernanceUserResponse {
-  locks: { [end: number]: GovernanceLock }
-  balance: SerializedBigNumber
-  allowance: SerializedBigNumber
-  staked: SerializedBigNumber
+export interface GovernancePublicResponse {
+  supplyABREQ: SerializedBigNumber
+  supplyGREQ: SerializedBigNumber
+  maxtime: number
 
 }
 export const fetchGovernanceData = createAsyncThunk(
   "bonds/fetchGovernanceData",
-  async ({ chainId, account }: GovernanceUserRequest): Promise<GovernanceUserResponse> => {
+  async ({ chainId }: GovernancePublicRequest): Promise<GovernancePublicResponse> => {
 
-    const redRequiemAddress = getRedRequiemAddress(chainId)
+    const redRequiemAddress = getGovernanceRequiemAddress(chainId)
     const redRequiemStakingAddress = getRedRequiemStakingAddress(chainId)
     // calls for general bond data
     const calls = [
-      // locked data user
+      // supply ABREQ
+      {
+        address: ABREQ[chainId].address,
+        name: 'totalSupply',
+        params: []
+      },
+      // supply Governacne REQ
       {
         address: redRequiemAddress,
-        name: 'get_locks',
-        params: [account]
+        name: 'totalSupply',
+        params: []
       },
       // userBalance
       {
         address: redRequiemAddress,
-        name: 'balanceOf',
-        params: [account]
-      },
-      // allowance
-      {
-        address: redRequiemAddress,
-        name: 'allowance',
-        params: [account, redRequiemStakingAddress]
-      },
-      // userBalance
-      {
-        address: redRequiemAddress,
-        name: 'balanceOf',
-        params: [redRequiemStakingAddress]
+        name: 'MAXTIME',
+        params: []
       },
     ]
 
-    const [locks, balance, allowance, staked] =
+    const [supplyABREQ, supplyGREQ, maxtime] =
       await multicall(chainId, redRequiemAvax, calls)
 
 
     return {
-      locks: Object.assign(
-        {}, ...locks._balances.map((data) => {
-          return {
-            [Number(data.end.toString())]: {
-              amount: data.amount.toString(),
-              end: Number(data.end.toString()),
-              minted: data.minted.toString(),
-              multiplier: data.votingPower.toString()
-            }
-          }
-        }))
-      ,
-      balance: balance.toString(),
-      allowance: allowance.toString(),
-      staked: staked.toString()
+      supplyABREQ: supplyABREQ.toString(),
+      supplyGREQ: supplyGREQ.toString(),
+      maxtime: Number(maxtime.toString())
     };
   },
 );

@@ -21,7 +21,7 @@ import {
   getAddressForWeightedPairFactory,
   getAddressForLpReserve,
   getRedRequiemStakingAddress,
-  getRedRequiemAddress,
+  getGovernanceRequiemAddress,
   getAssetBackedStakingAddress,
 
 } from 'utils/addressHelpers'
@@ -51,7 +51,7 @@ import { Pool, StablePool } from '@requiemswap/sdk'
 
 import weightedFactoryOASIS from 'config/abi/oasis/RequiemWeightedPairFactory.json'
 
-import redRequiem from 'config/abi/avax/RedRequiem.json'
+import redRequiem from 'config/abi/avax/GovernanceRequiem.json'
 import redRequiemStaking from 'config/abi/avax/RedRequiemStaking.json'
 // ABI polygon
 import lpTokenAbiPolygon from 'config/abi/polygon/IRequiemPair.json'
@@ -169,7 +169,7 @@ export const getWeightedPairFactory = (chainId: number, signer?: ethers.Signer |
 }
 
 export const getRedRequiemContract = (chainId: number, signer?: ethers.Signer | ethers.providers.Provider) => {
-  return getContract(chainId, chainId === 43113 ? new Interface(redRequiem) : redRequiem, getRedRequiemAddress(chainId), signer)
+  return getContract(chainId, chainId === 43113 ? new Interface(redRequiem) : redRequiem, getGovernanceRequiemAddress(chainId), signer)
 }
 
 export const getRedRequiemStakingContract = (chainId: number, signer?: ethers.Signer | ethers.providers.Provider) => {

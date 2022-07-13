@@ -4,6 +4,7 @@ import useRefresh from 'hooks/useRefresh'
 import { fetchGovernanceData } from './fetchGovernanceData'
 import { typeInput, typeInputTime } from './actions'
 import { AppDispatch, AppState, useAppDispatch } from '../index'
+import { fetchGovernanceUserDetails } from './fetchGovernanceUserDetails'
 
 
 export function useGovernanceState(chainId: number) {
@@ -45,14 +46,17 @@ export function useGovernanceInfo(
     dataLoaded: boolean
     balance: string
     locks: {
-        [end: number]: {
+        [id: number]: {
             amount: string
             end: number
             minted: string
-            multiplier: string
+            id: number
         }
     }
     staked: string
+    supplyABREQ: string
+    supplyGREQ: string
+    maxtime: number
 } {
     const { dataLoaded } = useGovernanceState(chainId)
 
@@ -61,18 +65,22 @@ export function useGovernanceInfo(
     const { slowRefresh } = useRefresh()
 
     useEffect(() => {
+        dispatch(fetchGovernanceData({ chainId }))
         if (!dataLoaded && account) {
-            dispatch(fetchGovernanceData({ chainId, account }))
+            dispatch(fetchGovernanceUserDetails({ chainId, account }))
         }
 
     }, [account, chainId, dataLoaded, slowRefresh, dispatch])
 
-    const { balance, locks, staked } = useGovernanceState(chainId)
+    const { balance, locks, staked, supplyABREQ, supplyGREQ, maxtime } = useGovernanceState(chainId)
 
     return {
         dataLoaded,
         balance,
         locks,
-        staked
+        staked,
+        supplyABREQ,
+        supplyGREQ,
+        maxtime
     }
 }

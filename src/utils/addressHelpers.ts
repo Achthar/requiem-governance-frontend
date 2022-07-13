@@ -19,8 +19,8 @@ export const getRequiemAddress = (chainId: number) => {
 export const getMasterChefAddress = (chainId: number) => {
   return getAddress(chainId, addresses.masterChef)
 }
-export const getRedRequiemAddress = (chainId: number) => {
-  return getAddress(chainId, addresses.bloodRedRequiem)
+export const getGovernanceRequiemAddress = (chainId: number) => {
+  return getAddress(chainId, addresses.gREQ)
 }
 export const getRedRequiemStakingAddress = (chainId: number) => {
   return getAddress(chainId, addresses.redRequiemStaking)
@@ -93,8 +93,4 @@ export const getAssetBackedStakingAddress = (chainId: number) => {
 
 export const getStakedRequiemAddress = (chainId: number) => {
   return getAddress(chainId, addresses.sREQ)
-}
-
-export const getGovernanceRequiemAddress = (chainId: number) => {
-  return getAddress(chainId, addresses.gREQ)
 }

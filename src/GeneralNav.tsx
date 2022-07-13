@@ -109,26 +109,12 @@ const NavContainer: React.FC<NavContainerProps> = ({ isMobile, chainId, onClickI
           Voting
         </StyledNavLink>
       </StyledNavItem>
-      <StyledNavItemDynamic open={open}>
-        {/* <StyledNavLink to={`/${chain}/governance`}> */}
-
-        <StyledNavText onClick={() => { setOpen(!open) }}>
-          <div onClick={() => { setOpen(!open) }} role="button" onKeyPress={() => { return null }}
-            tabIndex={0}>
-            <ImageGov src={iconGovernment} alt='' open={open} />
-          </div>
-          Governance
-        </StyledNavText>
-        <Collapsible open={open} isMobile={isMobile}>
-          <StyledNavLink to={`/${chain}/governance`}>
-            Requiem Reward
-          </StyledNavLink>
-          <StyledNavLink to={`/${chain}/governance-ab`}>
-            Asset-Backed Requiem
-          </StyledNavLink>
-        </Collapsible>
-        {/* </StyledNavLink> */}
-      </StyledNavItemDynamic>
+      <StyledNavItem onClick={handleClick}>
+        <StyledNavLink to={`/${chain}/governance`}>
+          <img src={iconGovernment} alt='' />
+          Governance Token
+        </StyledNavLink>
+      </StyledNavItem>
       <StyledNavItem onClick={handleClick}>
         <StyledLinkHref
           href={ExternalLinks.documentations}

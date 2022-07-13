@@ -14,7 +14,7 @@ import useActiveWeb3React from 'hooks/useActiveWeb3React'
 import { useChainIdHandling } from 'hooks/useChainIdHandle'
 import { useNetworkState } from 'state/globalNetwork/hooks'
 
-import { getAssetBackedStakingAddress, getRedRequiemAddress } from 'utils/addressHelpers'
+import { getAssetBackedStakingAddress, getGovernanceRequiemAddress } from 'utils/addressHelpers'
 import Row from 'components/Row'
 import getChain from 'utils/getChain'
 import { useGetRawWeightedPairsState } from 'hooks/useGetWeightedPairsState'
@@ -23,7 +23,7 @@ import useRefresh from 'hooks/useRefresh'
 import wrapImage from 'assets/wrap.png'
 import stakeImage from 'assets/stake.svg'
 import useDebouncedChangeHandler from 'hooks/useDebouncedChangeHandler'
-import { fetchGovernanceData } from 'state/governance/fetchGovernanceData'
+// import { fetchGovernanceUserData } from 'state/governance/fetchGovernanceData'
 import { useAssetBackedStakingInfo } from 'state/assetBackedStaking/hooks'
 import { useAppDispatch } from 'state'
 import useToast from 'hooks/useToast'
@@ -298,7 +298,7 @@ export default function GovernanceAssetBackedRequiem({
     }
 
 
-    dispatch(fetchGovernanceData({ chainId, account }))
+    // dispatch(fetchGovernanceUserData({ chainId, account }))
   }
 
   const { toastSuccess, toastError } = useToast()
