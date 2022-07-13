@@ -381,8 +381,8 @@ export default function Governance({
           noConfig
         />
         <Flex flexDirection={isMobile ? 'column' : 'row-reverse'} marginRight={isMobile ? '0px' : '20px'} marginTop='10px' alignItems='space-between' justifyContent='space-between'>
-          <Flex maxHeight='1150px'>
-            <AppBody>
+          <Flex maxHeight='1150px' flexDirection='column'>
+            {/* <AppBody> */}
               <Row width='100%' height='50px' marginTop='3px'>
                 <Button
                   onClick={() => {
@@ -539,7 +539,7 @@ export default function Governance({
 
               </CardBody>
 
-            </AppBody>
+            {/* </AppBody> */}
           </Flex>
           {renderLocks()}
         </Flex>

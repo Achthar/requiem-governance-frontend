@@ -27,6 +27,7 @@ const BorderCard = styled.div`
   border: solid 1px ${({ theme }) => theme.colors.cardBorder};
   border-radius: 16px;
   padding: 16px;
+  background-image: linear-gradient(to bottom right, rgba(255,0,0,0), rgba(162, 162, 162, 0.5), rgba(255,0,0,0));
 `
 
 const DropdownContainer = styled.div`
