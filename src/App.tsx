@@ -35,6 +35,7 @@ const NotFound = lazy(() => import('./views/NotFound'))
 // const AddLiquidity = lazy(() => import('./views/AddLiquidity'))
 // const AddPoolLiquidity = lazy(() => import('./views/AddPoolLiquidity'))
 const Governance = lazy(() => import('./views/Governance'))
+const Staking = lazy(() => import('./views/Staking'))
 const GovernanceAb = lazy(() => import('./views/Governance-AB'))
 // const AddStableLiquidity = lazy(() => import('./views/AddStableLiquidity'))
 const Liquidity = lazy(() => import('./views/Pool/poolList'))
@@ -79,6 +80,7 @@ const App: React.FC = () => {
           <Route exact path="/:chain/add" component={AddLiquidity} /> */}
           <Route exact path="/:chain/voting" component={Vote} />
           <Route exact path="/:chain/governance" component={Governance} />
+          <Route exact path="/:chain/staking" component={Staking} />
           <Route exact path="/:chain/governance-ab" component={GovernanceAb} />
           {/* <Route exact path="/:chain/add/stables" component={AddStableLiquidity} />
           <Route exact path="/:chain/add/weighted" component={AddPoolLiquidity} /> */}

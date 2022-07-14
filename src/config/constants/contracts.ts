@@ -147,6 +147,9 @@ export const addresses = {
   },
   requiemFundDistributor: {
     43113: '0x05b077e101072E2252886602dD212125666b6b15'
+  },
+  governanceStaking: {
+    43113: ' 0xB2394Ad500c7621FD68053300e758C031b0B0b45'
   }
 
   // abREQ 0xD27388BA6b3A44003A85E336e2Fd76d6e331EF87

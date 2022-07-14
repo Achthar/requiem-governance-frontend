@@ -23,7 +23,6 @@ export interface GovernanceUserResponse {
   locks: { [end: number]: GovernanceLock }
   balance: SerializedBigNumber
   allowance: SerializedBigNumber
-  staked: SerializedBigNumber
 
 }
 export const fetchGovernanceUserDetails = createAsyncThunk(
@@ -52,12 +51,6 @@ export const fetchGovernanceUserDetails = createAsyncThunk(
         name: 'allowance',
         params: [account, redRequiemStakingAddress]
       },
-      // userBalance
-      {
-        address: redRequiemAddress,
-        name: 'balanceOf',
-        params: [redRequiemStakingAddress]
-      },
       // indexes
       {
         address: redRequiemAddress,
@@ -66,7 +59,7 @@ export const fetchGovernanceUserDetails = createAsyncThunk(
       },
     ]
 
-    const [locks, balance, allowance, staked, indexes] =
+    const [locks, balance, allowance, indexes] =
       await multicall(chainId, redRequiemAvax, calls)
 
 
@@ -84,8 +77,7 @@ export const fetchGovernanceUserDetails = createAsyncThunk(
         }))
       ,
       balance: balance.toString(),
-      allowance: allowance.toString(),
-      staked: staked.toString()
+      allowance: allowance.toString()
     };
   },
 );

@@ -24,6 +24,7 @@ export interface GovernanceState {
       supplyABREQ: string
       supplyGREQ: string
       maxtime: number
+      lockedInGovernance:string
     }
   }
 }
@@ -39,6 +40,7 @@ const initialState: GovernanceState = {
       locks: {},
       supplyABREQ: '0',
       supplyGREQ: '0',
+      lockedInGovernance: '0',
       maxtime: 100
     }
   }

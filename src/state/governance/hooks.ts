@@ -56,6 +56,7 @@ export function useGovernanceInfo(
     staked: string
     supplyABREQ: string
     supplyGREQ: string
+    lockedInGovernance: string
     maxtime: number
 } {
     const { dataLoaded } = useGovernanceState(chainId)
@@ -72,7 +73,7 @@ export function useGovernanceInfo(
 
     }, [account, chainId, dataLoaded, slowRefresh, dispatch])
 
-    const { balance, locks, staked, supplyABREQ, supplyGREQ, maxtime } = useGovernanceState(chainId)
+    const { balance, locks, staked, supplyABREQ, supplyGREQ, maxtime, lockedInGovernance } = useGovernanceState(chainId)
 
     return {
         dataLoaded,
@@ -81,6 +82,7 @@ export function useGovernanceInfo(
         staked,
         supplyABREQ,
         supplyGREQ,
-        maxtime
+        maxtime,
+        lockedInGovernance
     }
 }

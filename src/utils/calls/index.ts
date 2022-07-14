@@ -1,5 +1,4 @@
 export * from './estimateGas'
 export * from './governance'
-export * from './farms'
 export * from './staking'
 export * from './pools'

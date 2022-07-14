@@ -24,7 +24,7 @@ import iconGithub from './assets/sidebar/ic-github.svg';
 import iconTwitter from './assets/sidebar/ic-twitter.svg';
 import iconDoc from './assets/sidebar/ic-doc.svg';
 import iconLiquidity from './assets/liquidity.svg';
-import iconAudit from './assets/sidebar/audit.svg';
+import iconStake from './assets/stake.svg';
 
 import bond from './assets/bonds2.svg'
 import iconREQTransparent from './assets/REQ_Transparent.png';
@@ -112,7 +112,13 @@ const NavContainer: React.FC<NavContainerProps> = ({ isMobile, chainId, onClickI
       <StyledNavItem onClick={handleClick}>
         <StyledNavLink to={`/${chain}/governance`}>
           <img src={iconGovernment} alt='' />
-          Governance Token
+          Governance Minting
+        </StyledNavLink>
+      </StyledNavItem>
+      <StyledNavItem onClick={handleClick}>
+        <StyledNavLink to={`/${chain}/staking`}>
+          <img src={iconStake} alt='' />
+          Governance Staking
         </StyledNavLink>
       </StyledNavItem>
       <StyledNavItem onClick={handleClick}>
@@ -541,10 +547,10 @@ export const configDataEntries: (chainId: number) => MenuEntry[] = (chainId) => 
       href: `/${chain}/liquidity`,
     },
     {
-      label: 'Farms',
-      icon: iconPools,
-      iconSelected: iconPools,
-      href: `/${chain}/farms`,
+      label: 'Staking',
+      icon: iconStake,
+      iconSelected: iconStake,
+      href: `/${chain}/staking`,
     },
     {
       label: 'Voting',

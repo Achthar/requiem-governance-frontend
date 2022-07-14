@@ -27,6 +27,8 @@ export interface GovernancePublicResponse {
   supplyABREQ: SerializedBigNumber
   supplyGREQ: SerializedBigNumber
   maxtime: number
+  staked: SerializedBigNumber
+  lockedInGovernance: SerializedBigNumber
 
 }
 export const fetchGovernanceData = createAsyncThunk(
@@ -49,22 +51,36 @@ export const fetchGovernanceData = createAsyncThunk(
         name: 'totalSupply',
         params: []
       },
-      // userBalance
+      // maxtime parameter
       {
         address: redRequiemAddress,
         name: 'MAXTIME',
         params: []
       },
+      // balance of staking contract
+      {
+        address: redRequiemAddress,
+        name: 'balanceOf',
+        params: [redRequiemStakingAddress]
+      },
+      // abREQ balance of governance contract
+      {
+        address: ABREQ[chainId].address,
+        name: 'balanceOf',
+        params: [redRequiemAddress]
+      },
     ]
 
-    const [supplyABREQ, supplyGREQ, maxtime] =
+    const [supplyABREQ, supplyGREQ, maxtime, staked, locked] =
       await multicall(chainId, redRequiemAvax, calls)
 
 
     return {
       supplyABREQ: supplyABREQ.toString(),
       supplyGREQ: supplyGREQ.toString(),
-      maxtime: Number(maxtime.toString())
+      maxtime: Number(maxtime.toString()),
+      staked: staked.toString(),
+      lockedInGovernance: locked.toString()
     };
   },
 );

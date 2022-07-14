@@ -122,7 +122,7 @@ const LockHeading: React.FC<LockHeaderProps> = ({ onSelect, lock, refTime, hideS
   )
 }
 
-const LockCard: React.FC<LockCardProps> = ({
+const StakingOption: React.FC<LockCardProps> = ({
   chainId, account, lock, onSelect, reqPrice, refTime, selected, isFirst, isLast, hideSelect, approval, approveCallback, hideActionButton: hideApproval, toggleLock }) => {
 
 
@@ -219,4 +219,4 @@ const LockCard: React.FC<LockCardProps> = ({
   )
 }
 
-export default LockCard
+export default StakingOption

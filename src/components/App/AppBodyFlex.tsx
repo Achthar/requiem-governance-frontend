@@ -8,7 +8,7 @@ border-radius: 24px;
 max-width: ${({ isMobile }) => isMobile ? '436px': '1000px'};
 width: 100%;
 z-index: 1;
-${({ isMobile }) => isMobile ? '': 'max-height: 1300px'}
+${({ isMobile }) => isMobile ? '': 'max-height: 1300px;'}
 `
 
 /**

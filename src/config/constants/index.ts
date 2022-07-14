@@ -420,9 +420,6 @@ export const BLOCKED_ADDRESSES: string[] = [
   '0x8576aCC5C05D6Ce88f4e49bf65BdF0C62F91353C',
 ]
 
-export { default as farmsConfig } from './farms'
-export { default as ifosConfig } from './ifo'
-
 // data for weighted pools
 export const STANDARD_FEES = [5, 10, 15, 20, 25]
 export const STANDARD_WEIGHTS = [20, 50, 80]
