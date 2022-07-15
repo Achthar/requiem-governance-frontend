@@ -5,7 +5,7 @@ import { ONE_18, Percent, TokenAmount } from '@requiemswap/sdk'
 import { Button, Text, ArrowDownIcon, CardBody, Slider, Box, Flex, useModal, useMatchBreakpoints } from '@requiemswap/uikit'
 import { RouteComponentProps } from 'react-router'
 import { BigNumber } from '@ethersproject/bignumber'
-import { ABREQ, GREQ } from 'config/constants/tokens'
+import { ABREQ, GREQ, USDC } from 'config/constants/tokens'
 import { useTranslation } from 'contexts/Localization'
 import CurrencyInputPanelExpanded from 'components/CurrencyInputPanel/CurrencyInputPanelExpanded'
 import { useGovernanceInfo } from 'state/governance/hooks'
@@ -30,10 +30,7 @@ import { bn_maxer, calculateVotingPower, get_amount_and_multiplier } from './hel
 import StakingOption from './components/stakingOption'
 import { useCreateLock, useIncreaseMaturity, useIncreasePosition } from './hooks/transactWithLock'
 
-import { Action, LockConfigurator } from './components/lockConfigurator'
-import { ColumnCenter } from '../../components/Layout/Column'
-import CurrencyInputPanel from '../../components/CurrencyInputPanel'
-
+import { Action } from './components/lockConfigurator'
 import { RowBetween, RowFixed } from '../../components/Layout/Row'
 import ConnectWalletButton from '../../components/ConnectWalletButton'
 
@@ -42,26 +39,20 @@ import { useTransactionAdder } from '../../state/transactions/hooks'
 import { getRedRequiemContract } from '../../utils'
 import { useApproveCallback, ApprovalState } from '../../hooks/useApproveCallback'
 import Dots from '../../components/Loader/Dots'
-import { useGasPrice, useGetRequiemAmount } from '../../state/user/hooks'
+import { useGetRequiemAmount } from '../../state/user/hooks'
 import Page from '../Page'
 
 
-
-const BorderCard = styled.div`
-  border: solid 1px ${({ theme }) => theme.colors.cardBorder};
-  border-radius: 16px;
-  padding: 16px;
+const BoxLeft = styled(Box) <{ selected: boolean }>`
+  width: ${({ selected }) => selected ? '60%' : '100%'};
+  -webkit-transform-origin: top left; -webkit-transition: all 1s;
 `
 
-const BorderCardLockList = styled(Flex)`
-  align-items: center;
-  justify-content: center;
-  width: 400px;
-  height:50px;
-  border: solid 2px ${({ theme }) => theme.colors.cardBorder};
-  background-image: linear-gradient(rgba(162, 162, 162, 0.76), black);
-  border-radius: 24px;
-  padding: 1px;
+const BoxRight = styled(Box) <{ selected: boolean }>`
+  margin-left: 20px;
+  width: ${({ selected }) => selected ? '40%' : '0px'};
+  height: ${({ selected }) => selected ? '100%' : '0px'};
+  -webkit-transform-origin: top right; -webkit-transition: all 1s;
 `
 
 
@@ -294,7 +285,7 @@ export default function Staking({
         <Box my="16px" >
 
           <CurrencyInputPanelExpanded
-            width='400px'
+            width='100%'
             balanceText={action === Action.increaseTime ? 'Locked' : 'Balance'}
             balances={{ [ABREQ[chainId].address]: action === Action.increaseTime ? lockedAmount : balance }}
             isLoading={isLoading}
@@ -313,49 +304,47 @@ export default function Staking({
             id="input to lock"
           />
         </Box>
-        <Box position="relative" mt="16px">
-          <Flex flexDirection='row'>
-            {!account ? (
-              <ConnectWalletButton align='center' height='27px' width='100%' />
-            ) : (
-              <RowBetween>
-                <Button
-                  variant={approval === ApprovalState.APPROVED || signatureData !== null ? 'success' : 'primary'}
-                  onClick={approveCallback} // {onAttemptToApprove}
-                  disabled={approval !== ApprovalState.NOT_APPROVED || signatureData !== null}
-                  width="100%"
-                  mr="0.5rem"
-                >
-                  {approval === ApprovalState.PENDING ? (
-                    <Dots>Enabling</Dots>
-                  ) : approval === ApprovalState.APPROVED || signatureData !== null ? (
-                    'Enabled'
-                  ) : (
-                    'Enable'
-                  )}
-                </Button>
-                <Button
-                  variant={
-                    (!!parsedAmounts[Field.CURRENCY_A] && !!parsedAmounts[Field.CURRENCY_B]) || (action === Action.increaseTime)
-                      ? 'primary'
-                      : 'danger'
-                  }
-                  onClick={() => {
-                    transactionFunc()
-                  }}
-                  width="100%"
-                  disabled={(approval !== ApprovalState.APPROVED) || pendingTx}
-                >
-                  {!pendingTx ? buttonText : (
-                    <Dots>
-                      {pendingText}
-                    </Dots>
-                  )}
-                </Button>
-              </RowBetween>
-            )}
-          </Flex>
-        </Box>
+        <Flex flexDirection='row' marginTop='5px'>
+          {!account ? (
+            <ConnectWalletButton align='center' height='27px' width='100%' />
+          ) : (
+            <RowBetween>
+              <Button
+                variant={approval === ApprovalState.APPROVED || signatureData !== null ? 'success' : 'primary'}
+                onClick={approveCallback} // {onAttemptToApprove}
+                disabled={approval !== ApprovalState.NOT_APPROVED || signatureData !== null}
+                width="100%"
+                mr="0.5rem"
+              >
+                {approval === ApprovalState.PENDING ? (
+                  <Dots>Enabling</Dots>
+                ) : approval === ApprovalState.APPROVED || signatureData !== null ? (
+                  'Enabled'
+                ) : (
+                  'Enable'
+                )}
+              </Button>
+              <Button
+                variant={
+                  (!!parsedAmounts[Field.CURRENCY_A] && !!parsedAmounts[Field.CURRENCY_B]) || (action === Action.increaseTime)
+                    ? 'primary'
+                    : 'danger'
+                }
+                onClick={() => {
+                  transactionFunc()
+                }}
+                width="100%"
+                disabled={(approval !== ApprovalState.APPROVED) || pendingTx}
+              >
+                {!pendingTx ? buttonText : (
+                  <Dots>
+                    {pendingText}
+                  </Dots>
+                )}
+              </Button>
+            </RowBetween>
+          )}
+        </Flex>
 
       </Flex>
     )
@@ -376,8 +365,10 @@ export default function Staking({
 
                 return (
                   <Flex flexDirection='row' width='100%' justifyContent='space-between' alignItems='space-between'>
-                    <Flex width={lockData.id === toggledLockId ? '50%' : '100%'}>
+                    <BoxLeft selected={lockData.id === toggledLockId}>
                       <StakingOption
+                        token={USDC[chainId]}
+                        stakeToken={ABREQ[chainId]}
                         chainId={chainId}
                         account={account}
                         lock={lockData}
@@ -398,10 +389,10 @@ export default function Staking({
                         hideActionButton={false}
                         toggleLock={toggleLock}
                       />
-                    </Flex>
-                    {lockData.id === toggledLockId && (
-                      inputPanel()
-                    )}
+                    </BoxLeft>
+                    <BoxRight selected={lockData.id === toggledLockId}>
+                      {lockData.id === toggledLockId && inputPanel()}
+                    </BoxRight>
                   </Flex>
                 )
               }))

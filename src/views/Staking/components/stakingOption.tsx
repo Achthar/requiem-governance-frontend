@@ -10,19 +10,21 @@ import { fetchGovernanceUserDetails } from 'state/governance/fetchGovernanceUser
 import { useAppDispatch } from 'state'
 import useToast from 'hooks/useToast'
 import Dots from 'components/Loader/Dots'
-
+import { SerializedToken } from 'config/constants/types'
 import { Lock } from 'state/governance/reducer'
 import { prettifySeconds } from 'config'
 import { ApprovalState } from 'hooks/useApproveCallback'
+import { TokenImage } from 'components/TokenImage'
+import { deserializeToken } from 'state/user/hooks/helpers'
 import { useEmergencyWithdrawFromLock, useWithdrawFromLock } from '../hooks/useWithdrawFromLock'
 
-
-
-const Wrapper = styled(Flex)`
-  svg {
-    margin-right: 4px;
-  }
-`
+export interface StakeData {
+  apr: string
+  reward: SerializedToken
+  totalStaked: string
+  stakedDollarValue: string
+  lockedABREQ: string
+}
 
 const StyledButton = styled(Button) <{ mB: string, width: string }>`
   background-color:none;
@@ -47,10 +49,6 @@ const ApprovalButton = styled(Button) <{ emergency: boolean }>`
 `
 
 
-const MultiplierTag = styled(Tag)`
-  margin-left: 4px;
-`
-
 const LockBox = styled(Box) <{ isFirst: boolean, isLast: boolean, selected: boolean }>`
   margin-top: 5px;
   align-self: baseline;
@@ -61,7 +59,7 @@ const LockBox = styled(Box) <{ isFirst: boolean, isLast: boolean, selected: bool
   border-top-right-radius: ${({ isFirst }) => isFirst ? '16px' : '0px'};
   border-bottom-left-radius: ${({ isLast }) => isLast ? '16px' : '0px'};
   border-bottom-right-radius: ${({ isLast }) => isLast ? '16px' : '0px'};
-  width: 100%;
+  width:100%;
 `
 
 const InnerContainer = styled(Flex)`
@@ -70,14 +68,10 @@ const InnerContainer = styled(Flex)`
   padding: 24px;
 `
 
-const ExpandingWrapper = styled.div`
-  padding: 24px;
-  border-top: 2px solid ${({ theme }) => theme.colors.cardBorder};
-  overflow: hidden;
-`
-
-interface LockCardProps {
+interface StakingOptionsProps {
   chainId: number
+  stakeToken: SerializedToken
+  token: SerializedToken
   account: string
   lock: Lock
   onSelect: () => void
@@ -93,7 +87,9 @@ interface LockCardProps {
   toggleLock?: (set: boolean) => void
 }
 
-interface LockHeaderProps {
+interface StakingHeaderProps {
+  token: SerializedToken
+  stakeToken: SerializedToken
   refTime: number
   lock: Lock
   onSelect: () => void
@@ -101,13 +97,17 @@ interface LockHeaderProps {
 }
 
 
-const LockHeading: React.FC<LockHeaderProps> = ({ onSelect, lock, refTime, hideSelect }) => {
-  const timeCounter = useMemo(() => { return prettifySeconds(Number(lock.end) - refTime ?? 0, 'hour'); }, [lock, refTime])
+const StakingOptionHeading: React.FC<StakingHeaderProps> = ({ onSelect, lock, refTime, hideSelect, token, stakeToken }) => {
 
   return (
     <>
       <Flex justifyContent="space-between">
-        <Text mb="4px" bold >{timeCounter}</Text>
+        <Flex flexDirection='row' justifyContent="space-betwen" alignItems='center' width='40%'>
+          <Text mb="4px" bold mr='20px'>Payout:</Text>
+          <TokenImage token={deserializeToken(token)} chainId={token.chainId} width={30} height={30} />
+          <Text mb="4px" bold mr='20px' ml='30px'>Stake:</Text>
+          <TokenImage token={deserializeToken(stakeToken)} chainId={token.chainId} width={30} height={30} />
+        </Flex>
         {/* <Flex justifyContent="center">
           {isCommunityFarm ? <CommunityTag /> : <CoreTag />}
           {multiplier ? (
@@ -116,14 +116,32 @@ const LockHeading: React.FC<LockHeaderProps> = ({ onSelect, lock, refTime, hideS
             <Skeleton ml="4px" width={42} height={28} />
           )}
         </Flex> */}
-        {!hideSelect ? (<StyledButton onClick={onSelect} > Manage </StyledButton>) : (<Text> Selected </Text>)}
+        {!hideSelect ? (<StyledButton onClick={onSelect} > Select Pool </StyledButton>) : (<Text> Selected </Text>)}
       </Flex>
     </>
   )
 }
 
-const StakingOption: React.FC<LockCardProps> = ({
-  chainId, account, lock, onSelect, reqPrice, refTime, selected, isFirst, isLast, hideSelect, approval, approveCallback, hideActionButton: hideApproval, toggleLock }) => {
+const StakingOption: React.FC<StakingOptionsProps> = (
+  {
+    chainId,
+    stakeToken,
+    token,
+    account,
+    lock,
+    onSelect,
+    reqPrice,
+    refTime,
+    selected,
+    isFirst,
+    isLast,
+    hideSelect,
+    approval,
+    approveCallback,
+    hideActionButton: hideApproval,
+    toggleLock
+  }
+) => {
 
 
   const { toastSuccess, toastError } = useToast()
@@ -147,7 +165,9 @@ const StakingOption: React.FC<LockCardProps> = ({
   return (
     <LockBox isFirst={isFirst} isLast={isLast} selected={selected}>
       <InnerContainer>
-        <LockHeading
+        <StakingOptionHeading
+          stakeToken={stakeToken}
+          token={token}
           lock={lock}
           refTime={refTime}
           onSelect={onSelect}
@@ -165,53 +185,6 @@ const StakingOption: React.FC<LockCardProps> = ({
           <Text size='5px'>Minted</Text>
           <Text >{formatGeneralNumber(formatSerializedBigNumber(lock.minted, 10, 18), 2)}</Text>
         </Flex>
-        {/* <Flex justifyContent="space-between">
-          <Text size='5px'>Multiplier</Text>
-          <Text >{`${formatGeneralNumber(formatSerializedBigNumber(lock.multiplier, 10, 18), 2)}x`}</Text>
-        </Flex> */}
-        {!hideApproval && (approval !== ApprovalState.APPROVED ? (
-          <ApprovalButton
-            marginTop='10px'
-            emergency={lock.end - refTime > 0}
-            variant='primary'
-            onClick={approveCallback} // {onAttemptToApprove}
-            disabled={approval !== ApprovalState.NOT_APPROVED}
-            width="100%"
-            mr="0.5rem"
-          >
-            Approve withdrawl
-          </ApprovalButton>
-
-        ) : (
-          <ApprovalButton
-            marginTop='10px'
-            emergency={lock.end - refTime > 0}
-            variant='primary'
-            onClick={async () => {
-              setPendingTx(true)
-              try {
-                await handleWithdraw(lock)
-                toastSuccess('Unlocked!', `Your amounts have been unlocked${lock.end - refTime > 0 && ' and penalty has been charged'}.`)
-                // onDismiss()
-              } catch (e) {
-                toastError(
-                  'Error',
-                  'Please try again. Confirm the transaction and make sure you are paying enough gas!',
-                )
-                console.error(e)
-              } finally {
-                setPendingTx(false)
-              }
-            }} // {onAttemptToApprove}
-            disabled={false || pendingTx}
-            width="100%"
-            mr="0.5rem"
-          >{!pendingTx ? lock.end - refTime > 0 ? 'Withdraw with penalty' : 'Withdraw' : (
-            <Dots>{lock.end - refTime > 0 ? 'Withdrawing with penalty' : 'Withdrawing'}</Dots>
-          )}</ApprovalButton>
-        )
-        )
-        }
       </InnerContainer>
 
 
