@@ -9,16 +9,19 @@ import Row from 'components/Row'
 
 
 const RequiemImage = styled.img`
-  width: 50%;
+  width: 100%;
 `;
 
 const Home: React.FC = () => {
   const { isMobile } = useMatchBreakpoints()
 
 
-  const intro = 'Requiem Finance is a decentralized platform that will give traders easy access to the most powerful tools in DeFi. At its core, it is a decentralized exchange with a stable swap built-in -ensuring traders get access to the best pricing. We already have a beta of our DEX  deployed on the AVAX testnet on requiem.finance. However, this is just the beginning. The following features are on our immediate release roadmap:'
+  const intro = 'The Requiem Finance Protocol is governed by the Governance Requiem Token (GREQ). That token can be minted when locking abREQ. At max, one GREQ can be minted for one abREQ where the exact amount you obtain depends on the amount of time you decide to lock abREQ. abREQ can be withdrawn early, but with a hefty penalty.'
 
-  const outlook = 'These features are the ones we have chosen to tackle first, however, we aim to continuously innovate to be the most sophisticated trading platform DeFi has to offer. At the moment, we are a small team of engineers and ex-CeFi employees but we hope that with your support, we can attract additional experienced individuals to join us on our journey.'
+  const outlook = 'The penalties collected will partly be burnt and also used to redistribute for yield farming to increase engagement on the platform without inflating abREQ itself.'
+ 
+  const locking = 'We allow the creating of multiple locks/locked positions so that you can flexibly decide on which mouynt to lock for a specific amount of time. As explained above, the amount of time abREQ is locked determines the amount of GREQ minted, where more specifically, the amount minted increases exponentially the longer you decide to lock it.'
+  
   const status: Status[] = ['past', 'past', 'past', 'past', 'past', 'current', 'future']
 
   const titleFont = {
@@ -51,15 +54,11 @@ const Home: React.FC = () => {
               justifyContent: 'center'
             }}
           >
-            <Flex flexDirection={isMobile ? 'column' : 'row'} justifyContent='center' alignItems='center'>
-                <RequiemImage
-                  src='https://requiem-finance.s3.eu-west-2.amazonaws.com/logos/requiem/requiem-finance.svg'
-                />
-           
-              <Text fontSize={isMobile ? "44px" : "64px"} color='white' marginBottom='10px' bold textAlign='center'>
-                Governance
-              </Text>
-            </Flex>
+
+            <RequiemImage
+              src='https://requiem-finance.s3.eu-west-2.amazonaws.com/logos/requiem/requiem-governance-header.svg'
+            />
+
           </div>
           <Text fontSize={isMobile ? "14px" : "24px"} color='white' marginBottom='10px'>
             {intro}
@@ -67,6 +66,9 @@ const Home: React.FC = () => {
 
           <Text fontSize={isMobile ? "14px" : "24px"} color='white' marginTop='10px'>
             {outlook}
+          </Text>
+          <Text fontSize={isMobile ? "14px" : "24px"} color='white' marginTop='10px'>
+            {locking}
           </Text>
         </Container>
 

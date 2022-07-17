@@ -20,7 +20,7 @@ import {
   getAddressForReserve,
   getAddressForWeightedPairFactory,
   getAddressForLpReserve,
-  getRedRequiemStakingAddress,
+  getGovernanceStakingAddress,
   getGovernanceRequiemAddress,
   getAssetBackedStakingAddress,
 
@@ -173,7 +173,7 @@ export const getRedRequiemContract = (chainId: number, signer?: ethers.Signer | 
 }
 
 export const getRedRequiemStakingContract = (chainId: number, signer?: ethers.Signer | ethers.providers.Provider) => {
-  return getContract(chainId, chainId === 43113 ? new Interface(redRequiemStaking) : redRequiemStaking, getRedRequiemStakingAddress(chainId), signer)
+  return getContract(chainId, chainId === 43113 ? new Interface(redRequiemStaking) : redRequiemStaking, getGovernanceStakingAddress(chainId), signer)
 }
 
 export const getAssetBackedStakingContract = (chainId: number, signer?: ethers.Signer | ethers.providers.Provider) => {

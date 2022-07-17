@@ -1,8 +1,11 @@
 import { createReducer } from '@reduxjs/toolkit'
+import { StakeData, stakingOptions } from 'config/constants/stakingOptions'
 import { SerializedBigNumber } from 'state/types'
 import { typeInput, typeInputTime } from './actions'
 import { fetchGovernanceData } from './fetchGovernanceData'
 import { fetchGovernanceUserDetails } from './fetchGovernanceUserDetails'
+import { fetchStakeData } from './fetchStakeData'
+import { fetchStakeUserDetails } from './fetchStakeUserDetails'
 
 export interface Lock {
   amount: SerializedBigNumber
@@ -18,13 +21,15 @@ export interface GovernanceState {
     [chainId: number]: {
       publicDataLoaded: boolean
       dataLoaded: boolean
+      stakingDataLoaded: boolean
       balance: string
       staked: string
       locks: { [end: number]: Lock },
       supplyABREQ: string
       supplyGREQ: string
       maxtime: number
-      lockedInGovernance:string
+      lockedInGovernance: string
+      staking: { [pid: number]: StakeData }
     }
   }
 }
@@ -35,13 +40,15 @@ const initialState: GovernanceState = {
     43113: {
       publicDataLoaded: false,
       dataLoaded: false,
+      stakingDataLoaded: false,
       balance: '0',
       staked: '0',
       locks: {},
       supplyABREQ: '0',
       supplyGREQ: '0',
       lockedInGovernance: '0',
-      maxtime: 100
+      maxtime: 100,
+      staking: stakingOptions(43113)
     }
   }
 }
@@ -64,12 +71,52 @@ export default createReducer<GovernanceState>(initialState, (builder) =>
       state.data[state.referenceChainId].dataLoaded = false;
     })
     .addCase(fetchGovernanceData.fulfilled, (state, action) => {
-      state.data[state.referenceChainId] = { ...state.data[state.referenceChainId], publicDataLoaded: true, ...action.payload }
+      state.data[state.referenceChainId] = {
+        ...state.data[state.referenceChainId],
+        ...action.payload,
+        publicDataLoaded: true
+      }
     })
     .addCase(fetchGovernanceData.rejected, (state, { error }) => {
       state.data[state.referenceChainId].dataLoaded = true;
       console.log(error, state)
       console.error(error.message);
+    })
+    .addCase(fetchStakeUserDetails.pending, state => {
+      state.data[state.referenceChainId].dataLoaded = false;
+    })
+    .addCase(fetchStakeUserDetails.fulfilled, (state, action) => {
+      const keys = Object.keys(action.payload.stakeUserData)
+      for (let i = 0; i < keys.length; i++) {
+        state.data[state.referenceChainId].staking[keys[i]] = {
+          ...state.data[state.referenceChainId].staking[keys[i]],
+          ...action.payload.stakeUserData[i]
+        }
+      }
+      state.data[state.referenceChainId].stakingDataLoaded = true
 
+    })
+    .addCase(fetchStakeUserDetails.rejected, (state, { error }) => {
+      // state.data[state.referenceChainId].dataLoaded = true;
+      console.log(error, state)
+      console.error(error.message);
+
+    })
+    .addCase(fetchStakeData.pending, state => {
+      // state.data[state.referenceChainId].dataLoaded = false;
+    })
+    .addCase(fetchStakeData.fulfilled, (state, action) => {
+      const keys = Object.keys(action.payload)
+      for (let i = 0; i < keys.length; i++) {
+        state.data[state.referenceChainId].staking[i] = {
+          ...state.data[state.referenceChainId].staking[i],
+          ...action.payload[i]
+        }
+      }
+    })
+    .addCase(fetchStakeData.rejected, (state, { error }) => {
+      // state.data[state.referenceChainId].dataLoaded = true;
+      console.log(error, state)
+      console.error(error.message);
     })
 )

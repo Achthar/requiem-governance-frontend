@@ -3,7 +3,7 @@ import { createAsyncThunk } from '@reduxjs/toolkit'
 import { ethers, BigNumber } from 'ethers'
 import multicall from 'utils/multicall';
 import redRequiemAvax from 'config/abi/avax/GovernanceRequiem.json'
-import { getGovernanceRequiemAddress, getRedRequiemStakingAddress } from 'utils/addressHelpers';
+import { getGovernanceRequiemAddress, getGovernanceStakingAddress } from 'utils/addressHelpers';
 import { SerializedBigNumber } from 'state/types';
 import { ABREQ } from 'config/constants/tokens';
 
@@ -27,7 +27,6 @@ export interface GovernancePublicResponse {
   supplyABREQ: SerializedBigNumber
   supplyGREQ: SerializedBigNumber
   maxtime: number
-  staked: SerializedBigNumber
   lockedInGovernance: SerializedBigNumber
 
 }
@@ -35,8 +34,8 @@ export const fetchGovernanceData = createAsyncThunk(
   "bonds/fetchGovernanceData",
   async ({ chainId }: GovernancePublicRequest): Promise<GovernancePublicResponse> => {
 
-    const redRequiemAddress = getGovernanceRequiemAddress(chainId)
-    const redRequiemStakingAddress = getRedRequiemStakingAddress(chainId)
+    const requiemGovernanceAddress = getGovernanceRequiemAddress(chainId)
+    const redRequiemStakingAddress = getGovernanceStakingAddress(chainId)
     // calls for general bond data
     const calls = [
       // supply ABREQ
@@ -47,31 +46,25 @@ export const fetchGovernanceData = createAsyncThunk(
       },
       // supply Governacne REQ
       {
-        address: redRequiemAddress,
+        address: requiemGovernanceAddress,
         name: 'totalSupply',
         params: []
       },
       // maxtime parameter
       {
-        address: redRequiemAddress,
+        address: requiemGovernanceAddress,
         name: 'MAXTIME',
         params: []
-      },
-      // balance of staking contract
-      {
-        address: redRequiemAddress,
-        name: 'balanceOf',
-        params: [redRequiemStakingAddress]
       },
       // abREQ balance of governance contract
       {
         address: ABREQ[chainId].address,
         name: 'balanceOf',
-        params: [redRequiemAddress]
+        params: [requiemGovernanceAddress]
       },
     ]
 
-    const [supplyABREQ, supplyGREQ, maxtime, staked, locked] =
+    const [supplyABREQ, supplyGREQ, maxtime, locked] =
       await multicall(chainId, redRequiemAvax, calls)
 
 
@@ -79,7 +72,6 @@ export const fetchGovernanceData = createAsyncThunk(
       supplyABREQ: supplyABREQ.toString(),
       supplyGREQ: supplyGREQ.toString(),
       maxtime: Number(maxtime.toString()),
-      staked: staked.toString(),
       lockedInGovernance: locked.toString()
     };
   },

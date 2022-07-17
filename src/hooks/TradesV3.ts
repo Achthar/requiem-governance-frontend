@@ -234,7 +234,7 @@ export function useTradeV3ExactOut(
 }
 
 export function useIsTransactionUnsupported(chainId: number, currencyIn?: Currency, currencyOut?: Currency): boolean {
-  const unsupportedTokens: { [address: string]: Token } = useUnsupportedTokens(chainId)
+  const unsupportedTokens: { [address: string]: Token } = {}
 
   const tokenIn = wrappedCurrency(currencyIn, chainId)
   const tokenOut = wrappedCurrency(currencyOut, chainId)

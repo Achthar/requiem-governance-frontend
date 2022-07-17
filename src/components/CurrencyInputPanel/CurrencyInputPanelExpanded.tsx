@@ -128,9 +128,9 @@ export default function CurrencyInputPanelExpanded({
               <RowBetween>
                 <Text fontSize="14px">{translatedLabel}</Text>
                 {account && (
-                  <Text onClick={onMax} fontSize="14px" style={{ display: 'inline', cursor: 'pointer' }}>
+                  <Text onClick={onMax} fontSize="14px" style={{ display: 'inline', cursor: 'pointer', whiteSpace: 'nowrap' }}>
                     {!hideBalance && !!currency && selectedCurrencyBalance
-                      ? isLoading ? <CircleLoader /> : `${balanceText}: ${Number(selectedCurrencyBalance?.toSignificant(8)).toLocaleString() ?? '' }`
+                      ? isLoading ? <CircleLoader /> : `${balanceText}: ${Number(selectedCurrencyBalance?.toSignificant(8)).toLocaleString() ?? ''}`
                       : ' -'}
                   </Text>
                 )}

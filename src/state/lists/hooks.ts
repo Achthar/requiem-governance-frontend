@@ -6,7 +6,6 @@ import { DEFAULT_LIST_OF_LISTS, UNSUPPORTED_LIST_URLS } from 'config/constants/l
 import { useNetworkState } from 'state/globalNetwork/hooks'
 import { AppState } from '../index'
 import { tokenList as DEFAULT_TOKEN_LIST } from '../../config/constants/tokenLists/tokenlist'
-import UNSUPPORTED_TOKEN_LIST from '../../config/constants/tokenLists/pancake-unsupported.tokenlist.json'
 import { ChainId } from '../../config/index'
 
 type TagDetails = Tags[keyof Tags]
@@ -190,14 +189,10 @@ export function useDefaultTokenList(chainId: number): TokenAddressMap {
 
 // list of tokens not supported on interface, used to show warnings and prevent swaps and adds
 export function useUnsupportedTokenList(): TokenAddressMap {
-  // get hard coded unsupported tokens
-  const localUnsupportedListMap = listToTokenMap(UNSUPPORTED_TOKEN_LIST)
-
-  // get any loaded unsupported tokens
-  const loadedUnsupportedListMap = useCombinedTokenMapFromUrls(UNSUPPORTED_LIST_URLS)
 
   // format into one token address map
-  return combineMaps(localUnsupportedListMap, loadedUnsupportedListMap)
+  return useCombinedTokenMapFromUrls(UNSUPPORTED_LIST_URLS)
+
 }
 
 export function useIsListActive(url: string): boolean {

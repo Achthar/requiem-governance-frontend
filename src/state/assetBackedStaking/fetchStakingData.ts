@@ -3,7 +3,7 @@ import { createAsyncThunk } from '@reduxjs/toolkit'
 import { ethers, BigNumber } from 'ethers'
 import multicall from 'utils/multicall';
 import abReqStaking from 'config/abi/avax/Staking.json'
-import { getAssetBackedStakingAddress, getRedRequiemStakingAddress } from 'utils/addressHelpers';
+import { getAssetBackedStakingAddress, getGovernanceStakingAddress } from 'utils/addressHelpers';
 import { SerializedBigNumber } from 'state/types';
 import { getAssetBackedStakingContract } from 'utils/contractHelpers';
 

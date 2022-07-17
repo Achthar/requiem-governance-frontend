@@ -346,6 +346,14 @@ export const tokenList = {
                 "logoURI": "https://requiem-finance.s3.eu-west-2.amazonaws.com/logos/tokens/abREQ.png"
             },
             {
+                "name": "Governance Requiem",
+                "symbol": "GREQ",
+                "address": "0x713732D64F6d2c6FA12eA6642F72F030753f699e",
+                "chainId": 43113,
+                "decimals": 18,
+                "logoURI": "https://requiem-finance.s3.eu-west-2.amazonaws.com/logos/tokens/GREQ.png"
+            },
+            {
                 "name": "ChainLink Token",
                 "symbol": "LINK",
                 "address": "0x0b9d5D9136855f6FEc3c0993feE6E9CE8a297846",

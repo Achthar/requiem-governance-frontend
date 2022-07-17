@@ -1,13 +1,14 @@
 import React, { useMemo, useState } from 'react'
 import BigNumber from 'bignumber.js'
 import styled from 'styled-components'
-import { Card, Flex, Text, Skeleton, Button, Heading, Tag, Box } from '@requiemswap/uikit'
+import { Card, Flex, Text, Skeleton, Button, Heading, Tag, Box, ChevronRightIcon } from '@requiemswap/uikit'
 import { DeserializedFarm } from 'state/types'
 import { useTranslation } from 'contexts/Localization'
 import ExpandableSectionButton from 'components/ExpandableSectionButton'
 import { getFullDisplayBalance, formatNumber, formatSerializedBigNumber, formatBigNumber, formatGeneralNumber } from 'utils/formatBalance'
 import { fetchGovernanceUserDetails } from 'state/governance/fetchGovernanceUserDetails'
 import { useAppDispatch } from 'state'
+import { fetchStakeUserDetails } from 'state/governance/fetchStakeUserDetails'
 import useToast from 'hooks/useToast'
 import Dots from 'components/Loader/Dots'
 import { SerializedToken } from 'config/constants/types'
@@ -18,12 +19,20 @@ import { TokenImage } from 'components/TokenImage'
 import { deserializeToken } from 'state/user/hooks/helpers'
 import { useEmergencyWithdrawFromLock, useWithdrawFromLock } from '../hooks/useWithdrawFromLock'
 
-export interface StakeData {
-  apr: string
-  reward: SerializedToken
-  totalStaked: string
-  stakedDollarValue: string
-  lockedABREQ: string
+
+const Line = styled.hr`
+  height: 1px;
+  border:  none;
+  background-color: ${({ theme }) => theme.colors.backgroundAlt};
+  color: white;
+  width: 90%;
+  size: 0.1;
+`;
+
+
+export enum Action {
+  stake,
+  withdraw
 }
 
 const StyledButton = styled(Button) <{ mB: string, width: string }>`
@@ -49,7 +58,7 @@ const ApprovalButton = styled(Button) <{ emergency: boolean }>`
 `
 
 
-const LockBox = styled(Box) <{ isFirst: boolean, isLast: boolean, selected: boolean }>`
+const StakeBox = styled(Box) <{ isFirst: boolean, isLast: boolean, selected: boolean }>`
   margin-top: 5px;
   align-self: baseline;
   border-radius: 2px;
@@ -68,12 +77,23 @@ const InnerContainer = styled(Flex)`
   padding: 24px;
 `
 
+const ImageCont = styled.div`
+  width: 30px;
+`
+
+export interface FullStakeData {
+  id?: number
+  staking: SerializedToken
+  reward: SerializedToken
+  totalStaked: string
+  rewardPool?: string
+  rewardDebt?: string
+  userStaked?: string
+  pendingReward?: string
+}
+
 interface StakingOptionsProps {
-  chainId: number
-  stakeToken: SerializedToken
-  token: SerializedToken
-  account: string
-  lock: Lock
+  stakeData: FullStakeData
   onSelect: () => void
   reqPrice: number
   refTime: number
@@ -81,33 +101,30 @@ interface StakingOptionsProps {
   isFirst: boolean
   isLast: boolean
   hideSelect: boolean
-  approval: ApprovalState
-  approveCallback: () => void
   hideActionButton: boolean
-  toggleLock?: (set: boolean) => void
 }
 
 interface StakingHeaderProps {
   token: SerializedToken
   stakeToken: SerializedToken
   refTime: number
-  lock: Lock
   onSelect: () => void
   hideSelect: boolean
 }
 
 
-const StakingOptionHeading: React.FC<StakingHeaderProps> = ({ onSelect, lock, refTime, hideSelect, token, stakeToken }) => {
+const StakingOptionHeading: React.FC<StakingHeaderProps> = ({ onSelect, refTime, hideSelect, token, stakeToken }) => {
 
   return (
     <>
       <Flex justifyContent="space-between">
-        <Flex flexDirection='row' justifyContent="space-betwen" alignItems='center' width='40%'>
+        <Text>Pool</Text>
+        {/* <Flex flexDirection='row' justifyContent="space-betwen" alignItems='center' width='40%'>
           <Text mb="4px" bold mr='20px'>Payout:</Text>
           <TokenImage token={deserializeToken(token)} chainId={token.chainId} width={30} height={30} />
           <Text mb="4px" bold mr='20px' ml='30px'>Stake:</Text>
           <TokenImage token={deserializeToken(stakeToken)} chainId={token.chainId} width={30} height={30} />
-        </Flex>
+        </Flex> */}
         {/* <Flex justifyContent="center">
           {isCommunityFarm ? <CommunityTag /> : <CoreTag />}
           {multiplier ? (
@@ -122,74 +139,108 @@ const StakingOptionHeading: React.FC<StakingHeaderProps> = ({ onSelect, lock, re
   )
 }
 
-const StakingOption: React.FC<StakingOptionsProps> = (
+export const StakingOption: React.FC<StakingOptionsProps> = (
   {
-    chainId,
-    stakeToken,
-    token,
-    account,
-    lock,
+    stakeData,
     onSelect,
     reqPrice,
     refTime,
     selected,
     isFirst,
     isLast,
-    hideSelect,
-    approval,
-    approveCallback,
-    hideActionButton: hideApproval,
-    toggleLock
+    hideSelect
   }
 ) => {
 
 
-  const { toastSuccess, toastError } = useToast()
-  const [pendingTx, setPendingTx] = useState(false)
-  const dispatch = useAppDispatch()
-
-  const { onWithdraw } = useWithdrawFromLock()
-  const { onEmergencyWithdraw } = useEmergencyWithdrawFromLock()
-
-  const handleWithdraw = async (_lock: Lock) => {
-    if (_lock.end - refTime > 0) {
-      await onEmergencyWithdraw(_lock)
-    } else {
-      await onWithdraw(_lock)
-    }
-    toggleLock(false)
-    dispatch(fetchGovernanceUserDetails({ chainId, account }))
-  }
-  if (!lock)
+  if (!stakeData)
     return null;
+
+  const token = stakeData.staking
+  const reward = stakeData.reward
+  const headerColor = 'rgba(255, 90, 90, 0.66)';
   return (
-    <LockBox isFirst={isFirst} isLast={isLast} selected={selected}>
+    <StakeBox isFirst={isFirst} isLast={isLast} selected={selected}>
+
       <InnerContainer>
-        <StakingOptionHeading
-          stakeToken={stakeToken}
-          token={token}
-          lock={lock}
+        {/* <StakingOptionHeading
+          stakeToken={token}
+          token={reward}
           refTime={refTime}
           onSelect={onSelect}
           hideSelect={hideSelect}
-        />
-        <Flex justifyContent="space-between">
-          <Text size='5px'>Locked</Text>
-          <Text >{formatGeneralNumber(formatSerializedBigNumber(lock.amount, 10, 18), 2)}</Text>
-        </Flex>
-        <Flex justifyContent="space-between">
-          <Text size='5px'>Value</Text>
-          <Text >${formatGeneralNumber(Number(formatSerializedBigNumber(lock.amount, 10, 18)) * reqPrice, 2)}</Text>
-        </Flex>
-        <Flex justifyContent="space-between">
+        /> */}
+        <Flex
+          flexDirection='row'
+          width={hideSelect ? '50%' : '100%'}
+          justifyContent={!hideSelect ? 'space-between' : 'space-between'}
+          alignItems={!hideSelect ? 'space-between' : 'space-between'}
+        >
+          <Flex flexDirection={hideSelect ? 'column' : 'row'}  justifyContent="space-betwen" alignItems='center'>
+            <Flex flexDirection='column' width='100%' justifyContent='center' alignItems='center'>
+              <Text mb="4px" bold mr='20px' color={headerColor}>Asset</Text>
+              <Flex flexDirection='row' justifyContent="space-betwen" alignItems='center' width='180px'>
+                <ImageCont>
+                  <TokenImage token={deserializeToken(token)} chainId={token.chainId} width={35} height={35} />
+                </ImageCont>
+                <Text mb="4px" bold mr='10px' ml='10px'>{token.symbol}</Text>
+              </Flex>
+            </Flex>
+            <Flex flexDirection='column' width='100%' justifyContent='center' alignItems='center'>
+              <Text mb="4px" bold mr='20px' color={headerColor}>Payout</Text>
+              <Flex flexDirection='row' justifyContent="space-betwen" alignItems='center' width='180px'>
+                <TokenImage token={deserializeToken(reward)} chainId={reward.chainId} width={35} height={35} />
+                <Text mb="4px" bold mr='10px' ml='10px'>{reward.symbol}</Text>
+              </Flex>
+            </Flex>
+          </Flex>
+          <Flex flexDirection='column' width={hideSelect ? '100%' : '25%'} marginLeft='10px' height='100%'>
+            <Text mb="4px" bold mr='20px' color={headerColor}>Staked</Text>
+            <Flex justifyContent="space-between">
+              <Text size='5px'>Total</Text>
+              <Text >{Number(stakeData.totalStaked).toLocaleString()}</Text>
+            </Flex>
+            <Flex justifyContent="space-between">
+              <Text size='5px'>User</Text>
+              <Text >{Number(stakeData.userStaked).toLocaleString()}</Text>
+            </Flex>
+            {hideSelect && (
+              <Flex flexDirection='column' width='100%'>
+                <Text mb="4px" bold mr='150px' color={headerColor}>Yields</Text>
+                <Flex justifyContent="space-between">
+                  <Text size='5px'>APR</Text>
+                  <Text marginLeft='100px'>{Number(stakeData.totalStaked).toLocaleString()}%</Text>
+                </Flex>
+                <Flex justifyContent="space-between">
+                  <Text size='5px'>APY</Text>
+                  <Text >{Number(stakeData.userStaked).toLocaleString()}%</Text>
+                </Flex>
+              </Flex>
+            )}
+          </Flex>
+          {!hideSelect && (
+            <Flex flexDirection='column' width={hideSelect ? '0%' : '15%'} marginLeft='10px'>
+              <Text mb="4px" bold mr='20px' color={headerColor}>Yields</Text>
+              {/* {!hideSelect ? (<StyledButton onClick={onSelect} > Select Pool </StyledButton>) : (<Text> Selected </Text>)} */}
+              <Flex justifyContent="space-between">
+                <Text size='5px'>APR</Text>
+                <Text >{Number(stakeData.totalStaked).toLocaleString()}%</Text>
+              </Flex>
+              <Flex justifyContent="space-between">
+                <Text size='5px'>APY</Text>
+                <Text >{Number(stakeData.userStaked).toLocaleString()}%</Text>
+              </Flex>
+            </Flex>
+          )}
+          {!hideSelect && (<ChevronRightIcon onClick={onSelect} height={60} marginLeft='10px' />)}
+          {/* <Flex justifyContent="space-between">
           <Text size='5px'>Minted</Text>
           <Text >{formatGeneralNumber(formatSerializedBigNumber(lock.minted, 10, 18), 2)}</Text>
+        </Flex> */}
         </Flex>
       </InnerContainer>
 
 
-    </LockBox>
+    </StakeBox>
   )
 }
-
-export default StakingOption

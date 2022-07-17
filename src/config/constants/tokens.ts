@@ -477,6 +477,14 @@ const tokens: { [tokenId: string]: TokenEntry } = {
     decimals: 18,
     projectLink: 'https://pancakeswap.finance/',
   },
+  'greq': {
+    symbol: 'GREQ',
+    address: {
+      43113: '0x713732D64F6d2c6FA12eA6642F72F030753f699e'
+    },
+    decimals: 18,
+
+  },
   'wmatic': {
     symbol: 'WMATIC',
     address: {

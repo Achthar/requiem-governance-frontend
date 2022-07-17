@@ -4,7 +4,7 @@ import { useMemo } from 'react';
 import { ethers, BigNumber, BigNumberish } from 'ethers'
 import multicall from 'utils/multicall';
 import redRequiemAvax from 'config/abi/avax/GovernanceRequiem.json'
-import { getGovernanceRequiemAddress, getRedRequiemStakingAddress } from 'utils/addressHelpers';
+import { getGovernanceRequiemAddress, getGovernanceStakingAddress } from 'utils/addressHelpers';
 import { SerializedBigNumber } from 'state/types';
 
 export interface GovernanceUserRequest {
@@ -29,31 +29,31 @@ export const fetchGovernanceUserDetails = createAsyncThunk(
   "bonds/fetchGovernanceUserDetails",
   async ({ chainId, account }: GovernanceUserRequest): Promise<GovernanceUserResponse> => {
 
-    const redRequiemAddress = getGovernanceRequiemAddress(chainId)
-    const redRequiemStakingAddress = getRedRequiemStakingAddress(chainId)
+    const governanceRequiemAddress = getGovernanceRequiemAddress(chainId)
+    const redRequiemStakingAddress = getGovernanceStakingAddress(chainId)
     // calls for general bond data
     const calls = [
       // locked data user
       {
-        address: redRequiemAddress,
+        address: governanceRequiemAddress,
         name: 'getLocks',
         params: [account]
       },
       // userBalance
       {
-        address: redRequiemAddress,
+        address: governanceRequiemAddress,
         name: 'balanceOf',
         params: [account]
       },
       // allowance
       {
-        address: redRequiemAddress,
+        address: governanceRequiemAddress,
         name: 'allowance',
         params: [account, redRequiemStakingAddress]
       },
       // indexes
       {
-        address: redRequiemAddress,
+        address: governanceRequiemAddress,
         name: 'getUserIndexes',
         params: [account]
       },

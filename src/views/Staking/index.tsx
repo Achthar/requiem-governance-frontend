@@ -8,7 +8,7 @@ import { BigNumber } from '@ethersproject/bignumber'
 import { ABREQ, GREQ, USDC } from 'config/constants/tokens'
 import { useTranslation } from 'contexts/Localization'
 import CurrencyInputPanelExpanded from 'components/CurrencyInputPanel/CurrencyInputPanelExpanded'
-import { useGovernanceInfo } from 'state/governance/hooks'
+import { useGovernanceInfo, useStakingInfo } from 'state/governance/hooks'
 import useActiveWeb3React from 'hooks/useActiveWeb3React'
 import { useChainIdHandling } from 'hooks/useChainIdHandle'
 import { useNetworkState } from 'state/globalNetwork/hooks'
@@ -25,12 +25,13 @@ import { useAppDispatch } from 'state'
 import { AppHeader, AppBody, AppBodyFlex, AppHeaderFlex } from 'components/App'
 import { Field } from 'config/constants/types'
 import useToast from 'hooks/useToast'
+import { formatEther } from 'ethers/lib/utils'
 import { getStartDate, timeConverter } from 'utils/time'
 import { bn_maxer, calculateVotingPower, get_amount_and_multiplier } from './helper/calculator'
-import StakingOption from './components/stakingOption'
+import { StakingOption, FullStakeData, Action } from './components/stakingOption'
 import { useCreateLock, useIncreaseMaturity, useIncreasePosition } from './hooks/transactWithLock'
 
-import { Action } from './components/lockConfigurator'
+
 import { RowBetween, RowFixed } from '../../components/Layout/Row'
 import ConnectWalletButton from '../../components/ConnectWalletButton'
 
@@ -53,6 +54,12 @@ const BoxRight = styled(Box) <{ selected: boolean }>`
   width: ${({ selected }) => selected ? '40%' : '0px'};
   height: ${({ selected }) => selected ? '100%' : '0px'};
   -webkit-transform-origin: top right; -webkit-transition: all 1s;
+`
+
+const TransformText = styled(Text) <{ selected: boolean }>`
+  width: ${({ selected }) => selected ? '100%' : '0px'};
+  white-space:nowrap;
+  -webkit-transform-origin: top right; -webkit-transition: all 2s;
 `
 
 
@@ -111,6 +118,34 @@ export default function Staking({
   const { balance: redReqBal, staked, locks, dataLoaded, supplyABREQ, supplyGREQ, lockedInGovernance
   } = useGovernanceInfo(chainId, account)
 
+  const {
+    staking,
+    stakingDataLoaded
+  } = useStakingInfo(chainId, account)
+
+
+  interface DataWithId extends FullStakeData {
+    id?: number
+  }
+
+  const stakeData: DataWithId[] = useMemo(() => {
+    if (!stakingDataLoaded) return []
+    return Object.keys(staking).map(key => {
+      return {
+        id: Number(key),
+        staking: staking[key]?.staking,
+        reward: staking[key]?.reward,
+        totalStaked: formatEther(staking[key]?.totalStaked ?? '0'),
+        rewardPool: formatEther(staking[key]?.rewardPool ?? '0'),
+        rewardDebt: formatEther(staking[key]?.rewardDebt ?? '0'),
+        userStaked: formatEther(staking[key]?.userStaked ?? '0'),
+        pendingReward: formatEther(staking[key]?.pendingReward ?? '0')
+      }
+    })
+  }, [staking, stakingDataLoaded])
+
+  useEffect(() => { console.log("STAKE", stakeData) }, [stakeData])
+
   const now = Math.round((new Date()).getTime() / 1000);
 
   // start time for slider - standardized to gmt midnight of next day
@@ -119,34 +154,20 @@ export default function Staking({
     [])
 
 
-  // select maturity with slider component
-  const [selectedMaturity, onSelectMaturity] = useState(Math.round(startTime))
-
   // sets boolean for selected lock
   const [lockSelected, toggleLock] = useState(false)
 
   // sets selected lock end of existing user locks
-  const [toggledLockId, toggleLockId] = useState(0)
+  const [toggledPoolId, toggleLockId] = useState(9999)
 
   // define which action to take
-  const [action, setAction] = useState(Action.createLock)
+  const [action, setAction] = useState(Action.stake)
 
   // value for currency input panel
   const [inputValue, onCurrencyInput] = useState('0')
 
   const { slowRefresh } = useRefresh()
 
-  // debouncer for slider
-  const [maturity, selectMaturity] = useDebouncedChangeHandler(
-    selectedMaturity,
-    onSelectMaturity,
-    200
-  )
-
-  // the user-selected lock
-  const lock = useMemo(() => {
-    return locks[toggledLockId]
-  }, [locks, toggledLockId])
 
 
   const {
@@ -162,36 +183,18 @@ export default function Staking({
     [pairs, chainId]
   )
 
-  const lockedAmount = useMemo(() => { return new TokenAmount(tokenA, lock?.amount ?? '0') }, [lock, tokenA])
-
   const [parsedAmounts, parsedMultiplier] = useMemo(() => {
     const input = BigNumber.from(tryParseTokenAmount(inputValue, tokenA)?.raw.toString() ?? 0)
-    let voting: BigNumber
-    try {
-      voting = calculateVotingPower(action, now, input, selectedMaturity, lock, locks, BigNumber.from(supplyABREQ), BigNumber.from(supplyGREQ)).mul(input).div(ONE_18)
-    } catch (Error) {
-      console.log(Error)
-      voting = BigNumber.from(0)
-    }
     return [
       {
         [Field.CURRENCY_A]: tryParseTokenAmount(inputValue, tokenA),
-        [Field.CURRENCY_B]: new TokenAmount(tokenB, voting && (voting.gte(0) ? voting : '0'))
+        [Field.CURRENCY_B]: new TokenAmount(tokenB, inputValue)
       },
       input
     ]
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [tokenA, tokenB, inputValue, selectedMaturity, action, supplyABREQ, supplyGREQ])
+  }, [tokenA, tokenB, inputValue, action, supplyABREQ, supplyGREQ])
 
-
-  const formattedAmounts = useMemo(() => {
-    return {
-      [Field.CURRENCY_A]:
-        parsedAmounts[Field.CURRENCY_A]?.toSignificant(6) ?? '',
-      [Field.CURRENCY_B]:
-        parsedAmounts[Field.CURRENCY_B]?.toSignificant(6) ?? '',
-    }
-  }, [parsedAmounts])
 
   const atMaxAmount = parsedAmounts[Field.CURRENCY_A]?.equalTo(new Percent('1'))
 
@@ -215,20 +218,8 @@ export default function Staking({
   const buttonText = 'Stake GREQ'
 
 
-  const titleText = action === Action.createLock ? 'Created Lock!' :
-    action === Action.increaseAmount ? 'Added to Lock!' : 'Increased Maturity!'
+  const titleText = action === Action.stake ? 'Staked!' : 'Withdrawl complete!'
 
-  const summaryText = action === Action.createLock ? `Lock ${parsedAmounts[Field.CURRENCY_A]?.toSignificant(3)} ${ABREQ[chainId]?.name
-    } for ${parsedAmounts[Field.CURRENCY_B]?.toSignificant(3)} ${GREQ[chainId]?.name}` :
-    action === Action.increaseAmount ? `Add ${parsedAmounts[Field.CURRENCY_A]?.toSignificant(3)} ${ABREQ[chainId]?.name}` :
-      `Add ${lock && (lock?.end - selectedMaturity) / 3600 / 24
-      } days for ${parsedAmounts[Field.CURRENCY_B]?.toSignificant(3)} ${GREQ[chainId]?.name} to Lock`
-
-
-  // transactions with lock
-  const { onIncreaseMaturity } = useIncreaseMaturity()
-  const { onIncreasePosition } = useIncreasePosition()
-  const { onCreateLock } = useCreateLock()
 
   // function to create a lock or deposit on existing lock
   const transactWithLock = async () => {
@@ -238,20 +229,20 @@ export default function Staking({
 
     const { [Field.CURRENCY_A]: parsedAmountA, [Field.CURRENCY_B]: parsedAmountB } = parsedAmounts
 
-    // we have to differentiate between addLiquidity and createPair (which also does directly add liquidity)
-    if (action === Action.createLock) {
-      await onCreateLock(parsedAmountA.toBigNumber().toHexString(), selectedMaturity)
+    // // we have to differentiate between addLiquidity and createPair (which also does directly add liquidity)
+    // if (action === Action.createLock) {
+    //   await onCreateLock(parsedAmountA.toBigNumber().toHexString(), selectedMaturity)
 
-    } else if (action === Action.increaseAmount) {
-      if (!lock)
-        return;
-      await onIncreasePosition(parsedAmountA.toBigNumber().toHexString(), lock)
-    }
-    else { // increase time
-      if (!lock)
-        return;
-      await onIncreaseMaturity(parsedAmountA.toBigNumber().toHexString(), selectedMaturity, lock)
-    }
+    // } else if (action === Action.increaseAmount) {
+    //   if (!lock)
+    //     return;
+    //   await onIncreasePosition(parsedAmountA.toBigNumber().toHexString(), lock)
+    // }
+    // else { // increase time
+    //   if (!lock)
+    //     return;
+    //   await onIncreaseMaturity(parsedAmountA.toBigNumber().toHexString(), selectedMaturity, lock)
+    // }
 
     dispatch(fetchGovernanceUserDetails({ chainId, account }))
   }
@@ -263,8 +254,8 @@ export default function Staking({
   const transactionFunc = async () => {
     setPendingTx(true)
     try {
-      await transactWithLock()
-      toastSuccess(titleText, summaryText)
+      // await transactWithLock()
+      // toastSuccess(titleText, summaryText)
       // onDismiss()
     } catch (e) {
       toastError(
@@ -277,34 +268,43 @@ export default function Staking({
     }
   }
 
-  const pendingText = action === Action.createLock ? 'Creating Lock' : action === Action.increaseTime ? 'Increasing time' : 'Adding to Lock'
+  const pendingText = action === Action.stake ? 'Staking' : 'Withdrawing'
 
-  const inputPanel = (): JSX.Element => {
+  const inputPanel = (text, balanceText): JSX.Element => {
     return (
       <Flex flexDirection='column' marginRight={isMobile ? '0' : '20px'}>
-        <Box my="16px" >
+        <Box my="2px" >
 
           <CurrencyInputPanelExpanded
             width='100%'
-            balanceText={action === Action.increaseTime ? 'Locked' : 'Balance'}
-            balances={{ [ABREQ[chainId].address]: action === Action.increaseTime ? lockedAmount : balance }}
+            balanceText={balanceText}
+            balances={{ [ABREQ[chainId].address]: action === Action.stake ? balance : balance }}
             isLoading={isLoading}
             chainId={chainId}
             account={account}
             value={inputValue}
             onUserInput={onCurrencyInput}
-            onMax={() => onCurrencyInput((action === Action.increaseTime ? lockedAmount : balance)?.toSignificant(18))}
+            onMax={() => onCurrencyInput((action === Action.stake ? balance : balance)?.toSignificant(18))}
             showMaxButton={!atMaxAmount}
             currency={tokenA}
-            label={action === Action.increaseTime ? `Select amount ${tokenA.symbol} locked` : 'Input'}
-            // hideInput={action === Action.increaseTime}
-            // reducedLine={action === Action.increaseTime}
+            label={text}
+            // hideInput={action === Action.stake}
+            // reducedLine={action === Action.stake}
             onCurrencySelect={() => { return null }}
             disableCurrencySelect
             id="input to lock"
           />
+          <Slider
+            name="maturity-selector"
+            min={0}
+            max={Number(balance.toSignificant(18))}
+            step={1}
+            value={10}
+            onValueChanged={(val) => { return val }}
+            width={isMobile ? '90%' : '95%'}
+          />
         </Box>
-        <Flex flexDirection='row' marginTop='5px'>
+        <Flex flexDirection='row'>
           {!account ? (
             <ConnectWalletButton align='center' height='27px' width='100%' />
           ) : (
@@ -326,7 +326,7 @@ export default function Staking({
               </Button>
               <Button
                 variant={
-                  (!!parsedAmounts[Field.CURRENCY_A] && !!parsedAmounts[Field.CURRENCY_B]) || (action === Action.increaseTime)
+                  (!!parsedAmounts[Field.CURRENCY_A] && !!parsedAmounts[Field.CURRENCY_B]) || (action === Action.stake)
                     ? 'primary'
                     : 'danger'
                 }
@@ -361,37 +361,35 @@ export default function Staking({
         <GeneralLockContainer isMobile={isMobile}>
           {
             account && (
-              Object.values(locks).map((lockData, index) => {
+              Object.values(stakeData).map((data, index) => {
 
                 return (
                   <Flex flexDirection='row' width='100%' justifyContent='space-between' alignItems='space-between'>
-                    <BoxLeft selected={lockData.id === toggledLockId}>
+                    <BoxLeft selected={data.id === toggledPoolId}>
                       <StakingOption
-                        token={USDC[chainId]}
-                        stakeToken={ABREQ[chainId]}
-                        chainId={chainId}
-                        account={account}
-                        lock={lockData}
+                        stakeData={data}
                         onSelect={() => {
-                          setAction(Action.increaseTime)
+                          setAction(Action.stake)
                           toggleLock(true)
-                          selectMaturity(lockData.end)
-                          toggleLockId(lockData.id)
+                          toggleLockId(data.id)
                         }}
                         reqPrice={reqPrice}
                         refTime={now}
                         isFirst={index === 0}
                         isLast={indexMax === index}
-                        selected={lockData.id === toggledLockId}
-                        hideSelect={lockData.id === toggledLockId}
-                        approval={approvalRreq}
-                        approveCallback={approveCallbackRreq}
+                        selected={data.id === toggledPoolId}
+                        hideSelect={data.id === toggledPoolId}
                         hideActionButton={false}
-                        toggleLock={toggleLock}
                       />
                     </BoxLeft>
-                    <BoxRight selected={lockData.id === toggledLockId}>
-                      {lockData.id === toggledLockId && inputPanel()}
+                    <BoxRight selected={data.id === toggledPoolId}>
+                      {data.id === toggledPoolId && inputPanel(
+                        <TransformText selected={action === Action.stake}>
+                          {action === Action.stake ? `Select amount to Stake` : 'Input'}
+                        </TransformText>,
+                        action === Action.stake ? 'Locked' : 'Balance'
+                      )
+                      }
                     </BoxRight>
                   </Flex>
                 )
@@ -402,25 +400,6 @@ export default function Staking({
       </Flex >
     )
   }
-
-
-  const configStartDate = useMemo(() => {
-
-    switch (action) {
-      case Action.increaseTime: {
-        return lock.end;
-      }
-      case Action.increaseAmount: {
-        return startTime;
-      }
-      case Action.createLock: {
-        return startTime;
-      }
-      default: {
-        return startTime;
-      }
-    }
-  }, [startTime, lock, action])
 
   return (
     <Page>
