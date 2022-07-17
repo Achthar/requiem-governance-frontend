@@ -23,6 +23,7 @@ import iconTelegram from './assets/sidebar/ic-telegram.svg';
 import iconGithub from './assets/sidebar/ic-github.svg';
 import iconTwitter from './assets/sidebar/ic-twitter.svg';
 import iconDoc from './assets/sidebar/ic-doc.svg';
+import poolsGov from './assets/sidebar/ic-pools.svg';
 import iconLiquidity from './assets/liquidity.svg';
 import iconStake from './assets/stake.svg';
 
@@ -117,7 +118,7 @@ const NavContainer: React.FC<NavContainerProps> = ({ isMobile, chainId, onClickI
       </StyledNavItem>
       <StyledNavItem onClick={handleClick}>
         <StyledNavLink to={`/${chain}/staking`}>
-          <img src={iconStake} alt='' />
+          <img src={poolsGov} alt='' />
           Governance Staking
         </StyledNavLink>
       </StyledNavItem>
@@ -208,6 +209,9 @@ export const getMenuIcon: (label: string) => any = (label) => {
     return bond
   if (label === 'Voting')
     return iconGovernment
+  if (label === 'Staking')
+    return poolsGov
+
   return null
 }
 
@@ -548,8 +552,8 @@ export const configDataEntries: (chainId: number) => MenuEntry[] = (chainId) => 
     },
     {
       label: 'Staking',
-      icon: iconStake,
-      iconSelected: iconStake,
+      icon: poolsGov,
+      iconSelected: poolsGov,
       href: `/${chain}/staking`,
     },
     {
