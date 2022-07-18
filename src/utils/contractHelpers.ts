@@ -176,6 +176,10 @@ export const getRedRequiemStakingContract = (chainId: number, signer?: ethers.Si
   return getContract(chainId, chainId === 43113 ? new Interface(redRequiemStaking) : redRequiemStaking, getGovernanceStakingAddress(chainId), signer)
 }
 
+export const getGovernanceStakingContract = (chainId: number, signer?: ethers.Signer | ethers.providers.Provider) => {
+  return getContract(chainId, chainId === 43113 ? new Interface(redRequiemStaking) : redRequiemStaking, getGovernanceStakingAddress(chainId), signer)
+}
+
 export const getAssetBackedStakingContract = (chainId: number, signer?: ethers.Signer | ethers.providers.Provider) => {
   return getContract(chainId, chainId === 43113 ? new Interface(bondStaking) : bondStaking, getAssetBackedStakingAddress(chainId), signer)
 }

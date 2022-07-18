@@ -1,8 +1,8 @@
 {
   "short_name": "RequiemFinance",
-  "name": "RequiemFinance",
-  "description": "Farm REQA with Requiem LP Tokens",
-  "homepage_url": "https://requiem.finance",
+  "name": "Governance Requiem Finance",
+  "description": "Stake Governance Requiem for Swap Profits",
+  "homepage_url": "https://governance.requiem.finance",
   "start_url": ".",
   "display": "standalone",
   "theme_color": "#1FC7D4",

@@ -13,6 +13,7 @@ import useActiveWeb3React from 'hooks/useActiveWeb3React'
 import { useChainIdHandling } from 'hooks/useChainIdHandle'
 import { useNetworkState } from 'state/globalNetwork/hooks'
 import { tryParseAmount, tryParseTokenAmount } from 'utils/numberFormatter'
+import Card from 'components/Card'
 import { getGovernanceRequiemAddress, getGovernanceStakingAddress } from 'utils/addressHelpers'
 import Row from 'components/Row'
 import getChain from 'utils/getChain'
@@ -23,6 +24,7 @@ import useDebouncedChangeHandler from 'hooks/useDebouncedChangeHandler'
 import { fetchGovernanceUserDetails } from 'state/governance/fetchGovernanceUserDetails'
 import { useAppDispatch } from 'state'
 import { AppHeader, AppBody, AppBodyFlex, AppHeaderFlex } from 'components/App'
+import { getGovernanceStakingContract } from 'utils/contractHelpers'
 import { Field } from 'config/constants/types'
 import useToast from 'hooks/useToast'
 import { formatEther } from 'ethers/lib/utils'
@@ -32,7 +34,7 @@ import DynamicSelect, { OptionProps } from 'components/Select/DynamicSelect'
 import { getStartDate, timeConverter } from 'utils/time'
 import { bn_maxer, calculateVotingPower, get_amount_and_multiplier } from './helper/calculator'
 import { StakingOption, FullStakeData, Action } from './components/stakingOption'
-import { useCreateLock, useIncreaseMaturity, useIncreasePosition } from './hooks/transactWithLock'
+import { useDeposit, useWithdrawAndHarvest } from './hooks/transactWithStaking'
 
 
 import { RowBetween, RowFixed } from '../../components/Layout/Row'
@@ -53,8 +55,17 @@ const BoxLeft = styled(Box) <{ selected: boolean }>`
 `
 
 const BoxRight = styled(Box) <{ selected: boolean }>`
+height: 100%;
+justify-content: center;
+align-items: center;
   margin-left: 20px;
   width: ${({ selected }) => selected ? '40%' : '0px'};
+  height: ${({ selected }) => selected ? '100%' : '0px'};
+  -webkit-transform-origin: top right; -webkit-transition: all 1s;
+`
+
+const BoxBottom = styled(Box) <{ selected: boolean }>`
+  width: 100%;
   height: ${({ selected }) => selected ? '100%' : '0px'};
   -webkit-transform-origin: top right; -webkit-transition: all 1s;
 `
@@ -94,6 +105,21 @@ const DropdownContainer = styled.div`
   -moz-transform: scale(0.66);
 `
 
+const CardBottom = styled(Card)`
+border-top-left-radius: 2px;
+border-top-right-radius: 2px;
+padding: 5px;
+border-left: solid 2px white;
+border-bottom: solid 2px white;
+border-right: solid 2px white;
+  width: 100%;
+  height: 80px;
+`
+
+const ActionButton = styled(Button)`
+border-radius: 5px;
+`
+
 export default function Staking({
   history,
   match: {
@@ -129,6 +155,20 @@ export default function Staking({
   const { balance: redReqBal, staked, locks, dataLoaded, supplyABREQ, supplyGREQ, lockedInGovernance
   } = useGovernanceInfo(chainId, account)
 
+  const totalReqLockedUser = useMemo(() => {
+    const lockKeys = Object.keys(locks)
+    let totalReqLocked = BigNumber.from(0);
+    if (!dataLoaded) return '0'
+    for (let i = 0; i < lockKeys.length; i++) {
+      totalReqLocked = totalReqLocked.add(locks[lockKeys[i]].amount)
+    }
+
+    return formatEther(totalReqLocked)
+  },
+    [locks, dataLoaded]
+  )
+
+
   const {
     staking,
     stakingDataLoaded
@@ -137,6 +177,7 @@ export default function Staking({
 
   interface DataWithId extends FullStakeData {
     id?: number
+    pendingRewardUsd?: number
   }
 
   const stakeData: DataWithId[] = useMemo(() => {
@@ -150,12 +191,15 @@ export default function Staking({
         rewardPool: formatEther(staking[key]?.rewardPool ?? '0'),
         rewardDebt: formatEther(staking[key]?.rewardDebt ?? '0'),
         userStaked: formatEther(staking[key]?.userStaked ?? '0'),
-        pendingReward: formatEther(staking[key]?.pendingReward ?? '0')
+        pendingReward: formatEther(staking[key]?.pendingReward ?? '0'),
+        rewardPerSecond: staking[key]?.rewardPerSecond ?? '0',
+        totalReqLockedUser,
+        pendingRewardUsd: Number(formatEther(BigNumber.from(staking[key]?.pendingReward ?? '0').mul(BigNumber.from(10).pow(18 - staking[key]?.reward.decimals))))
       }
     })
-  }, [staking, stakingDataLoaded])
+  }, [staking, stakingDataLoaded, totalReqLockedUser])
 
-  useEffect(() => { console.log("STAKE", stakeData) }, [stakeData])
+  // useEffect(() => { console.log("STAKE", stakeData) }, [stakeData])
 
   const now = Math.round((new Date()).getTime() / 1000);
 
@@ -238,13 +282,20 @@ export default function Staking({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [tokenA, tokenB, inputPercent, action, supplyABREQ, supplyGREQ, balances])
 
-  console.log("PPP", manualPerc)
+  const finalAmount = useMemo(() => {
+    return inputType === InputType.absolute ? parsedAmounts[Field.CURRENCY_A] : parsedAmountsPercentage[Field.CURRENCY_A]
+  },
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [inputType, parsedAmounts, parsedAmountsPercentage]
+  )
 
+  const { onDeposit } = useDeposit()
+  const { onWithdrawAndHarvest } = useWithdrawAndHarvest()
   const atMaxAmount = parsedAmounts[Field.CURRENCY_A]?.equalTo(new Percent('1'))
 
   // allowance handling
   const [signatureData, setSignatureData] = useState<{ v: number; r: string; s: string; deadline: number } | null>(null)
-  const [approval, approveCallback] = useApproveCallback(chainId, account, parsedAmounts[Field.CURRENCY_A], getGovernanceRequiemAddress(chainId))
+  const [approval, approveCallback] = useApproveCallback(chainId, account, parsedAmounts[Field.CURRENCY_A], getGovernanceStakingAddress(chainId))
 
   const [approvalRreq, approveCallbackRreq] = useApproveCallback(
     chainId, account,
@@ -272,27 +323,16 @@ export default function Staking({
   )
 
   // function to create a lock or deposit on existing lock
-  const transactWithLock = async () => {
+  const transactWithStaking = async () => {
     if (!chainId || !library || !account) return
 
-    const redRequiemContract = getRedRequiemContract(chainId, library, account)
+    // // we have to differentiate between astaking and withdrawls
+    if (action === Action.stake) {
+      await onDeposit(finalAmount.toBigNumber().toHexString())
 
-    const { [Field.CURRENCY_A]: parsedAmountA, [Field.CURRENCY_B]: parsedAmountB } = parsedAmounts
-
-    // // we have to differentiate between addLiquidity and createPair (which also does directly add liquidity)
-    // if (action === Action.createLock) {
-    //   await onCreateLock(parsedAmountA.toBigNumber().toHexString(), selectedMaturity)
-
-    // } else if (action === Action.increaseAmount) {
-    //   if (!lock)
-    //     return;
-    //   await onIncreasePosition(parsedAmountA.toBigNumber().toHexString(), lock)
-    // }
-    // else { // increase time
-    //   if (!lock)
-    //     return;
-    //   await onIncreaseMaturity(parsedAmountA.toBigNumber().toHexString(), selectedMaturity, lock)
-    // }
+    } else if (action === Action.withdraw) {
+      await onWithdrawAndHarvest(finalAmount.toBigNumber().toHexString())
+    }
 
     dispatch(fetchGovernanceUserDetails({ chainId, account }))
   }
@@ -300,12 +340,14 @@ export default function Staking({
   const { toastSuccess, toastError } = useToast()
   const [pendingTx, setPendingTx] = useState(false)
 
+  const summaryText = action === Action.stake ? `Stake ${parsedAmounts[Field.CURRENCY_A]?.toSignificant(3)}` : `Withdraw ${parsedAmounts[Field.CURRENCY_A]?.toSignificant(3)}`
+
   // the final transaction function
   const transactionFunc = async () => {
     setPendingTx(true)
     try {
-      // await transactWithLock()
-      // toastSuccess(titleText, summaryText)
+      await transactWithStaking()
+      toastSuccess(titleText, summaryText)
       // onDismiss()
     } catch (e) {
       toastError(
@@ -324,6 +366,26 @@ export default function Staking({
     // eslint-disable-next-line react-hooks/exhaustive-deps
     [inputType, manualPerc, inputPercent]
   )
+
+  const bottomBox = (_stakeData: DataWithId): JSX.Element => {
+    return (<CardBottom>
+      <Flex flexDirection='row' height='50px' alignItems='space-between' justifyContent='space-between'>
+
+        <Flex flexDirection='column'>
+          <Text>Pending reward</Text>
+          <Text>{_stakeData.pendingRewardUsd}</Text>
+        </Flex>
+        <ActionButton
+          variant='primary'
+          onClick={() => { return setAction(Action.withdraw === action ? Action.stake : Action.withdraw) }} // {onAttemptToApprove}
+          width="80px"
+          mr="0.5rem"
+        >
+          {action === Action.withdraw ? 'Deposit instead' : 'Withdraw instead'}
+        </ActionButton>
+      </Flex>
+    </CardBottom>)
+  }
 
 
   const dropdown = (): JSX.Element => {
@@ -359,7 +421,7 @@ export default function Staking({
               setInputType(InputType.absolute)
               return onCurrencyInput(val)
             }}
-            onMax={() => onCurrencyInput((action === Action.stake ? balance : balance)?.toSignificant(18))}
+            onMax={() => onCurrencyInput(formatEther(action === Action.stake ? balances?.[tokenA.address]?.balance : balances?.[tokenA.address]?.balance))}
             showMaxButton={!atMaxAmount}
             currency={action === Action.stake ? tokenA : tokenB}
             label={text}
@@ -367,7 +429,7 @@ export default function Staking({
             // reducedLine={action === Action.stake}
             onCurrencySelect={() => { return null }}
             disableCurrencySelect
-            id="input to lock"
+            id="input to stake"
           />
           <Flex flexDirection='row'>
             <Slider
@@ -391,15 +453,17 @@ export default function Staking({
           ) : (
             <RowBetween>
               <Button
-                variant={approval === ApprovalState.APPROVED || signatureData !== null ? 'success' : 'primary'}
+                variant={approval === ApprovalState.APPROVED ? 'success' : 'primary'}
                 onClick={approveCallback} // {onAttemptToApprove}
-                disabled={approval !== ApprovalState.NOT_APPROVED || signatureData !== null}
+                disabled={approval !== ApprovalState.NOT_APPROVED}
                 width="100%"
                 mr="0.5rem"
               >
                 {approval === ApprovalState.PENDING ? (
                   <Dots>Enabling</Dots>
-                ) : approval === ApprovalState.APPROVED || signatureData !== null ? (
+                ) : approval === ApprovalState.LOADING || approvalRreq === ApprovalState.UNKNOWN ? (
+                  <Dots>Loading Allowance</Dots>
+                ) : approval === ApprovalState.APPROVED ? (
                   'Enabled'
                 ) : (
                   'Enable'
@@ -462,13 +526,17 @@ export default function Staking({
                         hideSelect={data.id === toggledPoolId}
                         hideActionButton={false}
                       />
+                      <BoxBottom selected={data.id === toggledPoolId}>
+                        {data.id === toggledPoolId && bottomBox(data)}
+                      </BoxBottom>
                     </BoxLeft>
+
                     <BoxRight selected={data.id === toggledPoolId}>
                       {data.id === toggledPoolId && inputPanel(
                         <TransformText selected={action === Action.stake}>
                           {action === Action.stake ? `Select amount to Stake` : 'Input'}
                         </TransformText>,
-                        action === Action.stake ? 'Locked' : 'Balance',
+                        action === Action.stake ? 'Balance' : 'Staked',
                         data.userStaked
                       )
                       }

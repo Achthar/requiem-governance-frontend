@@ -12,6 +12,7 @@ export interface StakeData extends StakingConfig {
     totalStaked?: string
     stakedDollarValue?: string
     allowance?: string
+    rewardPerSecond?: string
 }
 
 export interface UserStakeData extends StakeData {

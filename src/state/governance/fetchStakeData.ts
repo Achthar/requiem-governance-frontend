@@ -3,6 +3,7 @@ import { createAsyncThunk } from '@reduxjs/toolkit'
 import { ethers, BigNumber } from 'ethers'
 import multicall from 'utils/multicall';
 import redRequiemAvax from 'config/abi/avax/GovernanceRequiem.json'
+import stakingAbi from 'config/abi/avax/GovernanceStaking.json'
 import { getGovernanceRequiemAddress, getGovernanceStakingAddress } from 'utils/addressHelpers';
 import { SerializedBigNumber } from 'state/types';
 import { ABREQ, USDC } from 'config/constants/tokens';
@@ -15,10 +16,11 @@ export interface StakingPublicRequest {
 
 export interface GovernancePublicResponse {
   [pid: number]: {
-    userStaked: SerializedBigNumber
+    totalStaked: SerializedBigNumber
     rewardPool: SerializedBigNumber
     reward: SerializedToken
     staking: SerializedToken
+    rewardPerSecond: SerializedBigNumber
 
   }
 }
@@ -42,19 +44,23 @@ export const fetchStakeData = createAsyncThunk(
         name: 'balanceOf',
         params: [stakingAddress]
       },
+      {
+        address: stakingAddress,
+        name: 'getRewardPerSecond',
+        params: []
+      }
     ]
 
-    const [staked, rewardPool] = await multicall(chainId, redRequiemAvax, calls)
+    const [staked, rewardPool, rps] = await multicall(chainId, [...redRequiemAvax, ...stakingAbi], calls)
 
     const tokens = stakingOptions(chainId)
-console.log("SST", tokens[0])
     return {
       0: {
-        userStaked: staked.toString(),
+        totalStaked: staked.toString(),
         rewardPool: rewardPool.toString(),
         staking: tokens[0].staking,
-        reward: tokens[0].reward
-
+        reward: tokens[0].reward,
+        rewardPerSecond: rps.toString()
       }
     };
   },

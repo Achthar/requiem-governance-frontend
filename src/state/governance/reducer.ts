@@ -56,7 +56,7 @@ const initialState: GovernanceState = {
 export default createReducer<GovernanceState>(initialState, (builder) =>
   builder
     .addCase(fetchGovernanceUserDetails.pending, state => {
-      state.data[state.referenceChainId].dataLoaded = false;
+      // state.data[state.referenceChainId].dataLoaded = false;
     })
     .addCase(fetchGovernanceUserDetails.fulfilled, (state, action) => {
       state.data[state.referenceChainId] = { ...state.data[state.referenceChainId], dataLoaded: true, ...action.payload }
@@ -68,7 +68,7 @@ export default createReducer<GovernanceState>(initialState, (builder) =>
 
     })
     .addCase(fetchGovernanceData.pending, state => {
-      state.data[state.referenceChainId].dataLoaded = false;
+      // state.data[state.referenceChainId].dataLoaded = false;
     })
     .addCase(fetchGovernanceData.fulfilled, (state, action) => {
       state.data[state.referenceChainId] = {
@@ -83,7 +83,7 @@ export default createReducer<GovernanceState>(initialState, (builder) =>
       console.error(error.message);
     })
     .addCase(fetchStakeUserDetails.pending, state => {
-      state.data[state.referenceChainId].dataLoaded = false;
+      // state.data[state.referenceChainId].dataLoaded = false;
     })
     .addCase(fetchStakeUserDetails.fulfilled, (state, action) => {
       const keys = Object.keys(action.payload.stakeUserData)

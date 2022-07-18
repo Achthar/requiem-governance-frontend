@@ -221,7 +221,7 @@ export const useRedRequiemContract = () => {
   return useMemo(() => getRedRequiemContract(chainId, library.getSigner()), [chainId, library])
 }
 
-export const useRedRequiemStakingContract = () => {
+export const useGovernanceStakingContract = () => {
   const { library, chainId } = useActiveWeb3React()
   return useMemo(() => getRedRequiemStakingContract(chainId, library.getSigner()), [chainId, library])
 }

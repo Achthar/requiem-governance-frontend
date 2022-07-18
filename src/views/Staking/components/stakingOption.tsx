@@ -1,5 +1,6 @@
 import React, { useMemo, useState } from 'react'
-import BigNumber from 'bignumber.js'
+import { BigNumber } from 'ethers'
+import { formatEther } from 'ethers/lib/utils'
 import styled from 'styled-components'
 import { Card, Flex, Text, Skeleton, Button, Heading, Tag, Box, ChevronRightIcon } from '@requiemswap/uikit'
 import { DeserializedFarm } from 'state/types'
@@ -90,6 +91,8 @@ export interface FullStakeData {
   rewardDebt?: string
   userStaked?: string
   pendingReward?: string
+  rewardPerSecond?: string
+  totalReqLockedUser?: string
 }
 
 interface StakingOptionsProps {
@@ -152,6 +155,25 @@ export const StakingOption: React.FC<StakingOptionsProps> = (
   }
 ) => {
 
+  const [reqValUser, totalReqVal] = useMemo(() => {
+    if (!stakeData) return [0, 0]
+    if (!stakeData.reward.symbol.includes('REQ') && !stakeData.staking.symbol.includes('REQ')) return [0, 0]
+    return [Number(stakeData.totalReqLockedUser) * reqPrice, Number(stakeData.totalStaked) * reqPrice]
+  },
+    [stakeData, reqPrice]
+  )
+
+  const [apr, apy] = useMemo(() => {
+    const _apr = Number(formatEther(BigNumber.from(stakeData.rewardPerSecond)
+    // .mul(BigNumber.from(10).pow(18 - stakeData.reward.decimals))
+    )) * 3600 * 24 * 365 / totalReqVal
+    const _apy = (1 + (_apr - 1.0) * 50 / 365) ** (365 / 50) - 1
+    return [Math.round((_apr - 1) * 10000) / 100, Math.round(_apy * 10000) / 100]
+  },
+    [stakeData.rewardPerSecond, totalReqVal,
+      //  stakeData.reward.decimals
+      ]
+  )
 
   if (!stakeData)
     return null;
@@ -176,7 +198,7 @@ export const StakingOption: React.FC<StakingOptionsProps> = (
           justifyContent={!hideSelect ? 'space-between' : 'space-between'}
           alignItems={!hideSelect ? 'space-between' : 'space-between'}
         >
-          <Flex flexDirection={hideSelect ? 'column' : 'row'}  justifyContent="space-betwen" alignItems='center'>
+          <Flex flexDirection={hideSelect ? 'column' : 'row'} justifyContent="space-betwen" alignItems='center'>
             <Flex flexDirection='column' width='100%' justifyContent='center' alignItems='center'>
               <Text mb="4px" bold mr='20px' color={headerColor}>Asset</Text>
               <Flex flexDirection='row' justifyContent="space-betwen" alignItems='center' width='180px'>
@@ -199,21 +221,23 @@ export const StakingOption: React.FC<StakingOptionsProps> = (
             <Flex justifyContent="space-between">
               <Text size='5px'>Total</Text>
               <Text >{Number(stakeData.totalStaked).toLocaleString()}</Text>
+              <Text >{totalReqVal.toLocaleString()}</Text>
             </Flex>
             <Flex justifyContent="space-between">
               <Text size='5px'>User</Text>
               <Text >{Number(stakeData.userStaked).toLocaleString()}</Text>
+              <Text >{reqValUser.toLocaleString()}</Text>
             </Flex>
             {hideSelect && (
               <Flex flexDirection='column' width='100%'>
-                <Text mb="4px" bold mr='150px' color={headerColor}>Yields</Text>
+                <Text mb="4px" bold mr='200px' color={headerColor}>Yields</Text>
                 <Flex justifyContent="space-between">
                   <Text size='5px'>APR</Text>
-                  <Text marginLeft='100px'>{Number(stakeData.totalStaked).toLocaleString()}%</Text>
+                  <Text marginLeft='150px'>{apr?.toLocaleString()}%</Text>
                 </Flex>
                 <Flex justifyContent="space-between">
                   <Text size='5px'>APY</Text>
-                  <Text >{Number(stakeData.userStaked).toLocaleString()}%</Text>
+                  <Text >{apy?.toLocaleString()}%</Text>
                 </Flex>
               </Flex>
             )}
@@ -224,11 +248,11 @@ export const StakingOption: React.FC<StakingOptionsProps> = (
               {/* {!hideSelect ? (<StyledButton onClick={onSelect} > Select Pool </StyledButton>) : (<Text> Selected </Text>)} */}
               <Flex justifyContent="space-between">
                 <Text size='5px'>APR</Text>
-                <Text >{Number(stakeData.totalStaked).toLocaleString()}%</Text>
+                <Text >{apr.toLocaleString()}%</Text>
               </Flex>
               <Flex justifyContent="space-between">
                 <Text size='5px'>APY</Text>
-                <Text >{Number(stakeData.userStaked).toLocaleString()}%</Text>
+                <Text >{apy?.toLocaleString()}%</Text>
               </Flex>
             </Flex>
           )}

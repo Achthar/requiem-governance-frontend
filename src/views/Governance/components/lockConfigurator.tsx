@@ -27,7 +27,7 @@ const BorderCard = styled.div`
   border: solid 1px ${({ theme }) => theme.colors.cardBorder};
   border-radius: 16px;
   padding: 16px;
-  background-image: linear-gradient(to bottom right, rgba(255,0,0,0), rgba(162, 162, 162, 0.5), rgba(255,0,0,0));
+  background-image: linear-gradient(to bottom right, rgba(255,0,0,0.01), rgba(255,0,0,0.1), rgba(255,0,0,0.01));
 `
 
 const DropdownContainer = styled.div`
@@ -201,7 +201,7 @@ const ScaleSelection = (selectedScale: Scale, selectScale: (scale: Scale) => voi
                 value="option 1"
                 onClick={() => { selectScale(Scale.weekly) }}
                 variant={selectedScale === Scale.monthly ? "secondary" : "primary"}
-                disabled={selectedScale === Scale.weekly}
+                // disabled={selectedScale === Scale.weekly}
             >
                 Weekly
             </Button>
@@ -212,7 +212,7 @@ const ScaleSelection = (selectedScale: Scale, selectScale: (scale: Scale) => voi
                 value="Button 2"
                 onClick={() => { selectScale(Scale.monthly) }}
                 variant={selectedScale === Scale.weekly ? "secondary" : "primary"}
-                disabled={selectedScale === Scale.monthly}
+                // disabled={selectedScale === Scale.monthly}
             >
                 Monthly
             </Button>
