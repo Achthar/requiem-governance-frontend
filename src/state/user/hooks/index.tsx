@@ -485,7 +485,7 @@ export function useGetRequiemAmount(chainId: number) {
   const balState = useUserBalances(chainId)
 
   return {
-    balance: new TokenAmount(ABREQ[chainId], balState?.balances[ABREQ[chainId].address].balance ?? '0'),
+    balance: new TokenAmount(ABREQ[chainId], balState?.balances[ABREQ[chainId].address]?.balance ?? '0'),
     isLoading: balState.isLoadingTokens
   }
 
@@ -496,7 +496,7 @@ export function useGetAssetBackedRequiemAmount(chainId: number) {
   const balState = useUserBalances(chainId)
 
   return {
-    balance: new TokenAmount(ABREQ[chainId], balState?.balances[ABREQ[chainId].address].balance ?? '0'),
+    balance: new TokenAmount(ABREQ[chainId], balState?.balances[ABREQ[chainId].address]?.balance ?? '0'),
     isLoading: balState.isLoadingTokens
   }
 

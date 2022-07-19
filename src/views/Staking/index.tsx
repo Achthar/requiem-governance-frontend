@@ -305,7 +305,7 @@ export default function Staking({
 
   const currentStakeData = useMemo(() => stakeData[toggledPoolId === 9999 ? 0 : toggledPoolId], [toggledPoolId, stakeData])
 
-  const { balances } = useUserBalances(chainId)
+  const { balances, isLoadingTokens } = useUserBalances(chainId)
 
   const [parsedAmounts, manualPerc] = useMemo(() => {
     setInputType(InputType.absolute)
@@ -390,8 +390,6 @@ export default function Staking({
     new TokenAmount(GREQ[chainId], bn_maxer(Object.values(locks).map(l => l.minted)).toString()),
     getGovernanceStakingAddress(chainId)
   )
-
-  const { balance, isLoading } = useGetRequiemAmount(chainId)
 
   // tx sending
   const addTransaction = useTransactionAdder()
@@ -587,7 +585,7 @@ export default function Staking({
             balanceText={balanceText}
             balances={action === Action.stake ? { [_token.address]: new TokenAmount(_token, balances?.[_token.address]?.balance ?? '0') } :
               { [_token.address]: _tokenStaked }}
-            isLoading={isLoading}
+            isLoading={isLoadingTokens}
             chainId={chainId}
             account={account}
             value={inputType === InputType.absolute ? inputValue : parsedAmountsPercentage[Field.CURRENCY_A]?.toSignificant(18)}
