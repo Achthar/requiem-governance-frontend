@@ -6,7 +6,6 @@ import { Button, Text, ArrowDownIcon, CardBody, Slider, Box, Flex, useModal, use
 import { RouteComponentProps } from 'react-router'
 import { BigNumber } from '@ethersproject/bignumber'
 import { ABREQ, GREQ, USDC } from 'config/constants/tokens'
-import { useTranslation } from 'contexts/Localization'
 import CurrencyInputPanelExpanded from 'components/CurrencyInputPanel/CurrencyInputPanelExpanded'
 import { useGovernanceInfo, useStakingInfo } from 'state/governance/hooks'
 import useActiveWeb3React from 'hooks/useActiveWeb3React'
@@ -21,11 +20,8 @@ import getChain from 'utils/getChain'
 import { useGetRawWeightedPairsState } from 'hooks/useGetWeightedPairsState'
 import { priceAssetBackedRequiem } from 'utils/poolPricer'
 import useRefresh from 'hooks/useRefresh'
-import useDebouncedChangeHandler from 'hooks/useDebouncedChangeHandler'
-import { fetchGovernanceUserDetails } from 'state/governance/fetchGovernanceUserDetails'
 import { useAppDispatch } from 'state'
-import { AppHeader, AppBody, AppBodyFlex, AppHeaderFlex } from 'components/App'
-import { getGovernanceStakingContract } from 'utils/contractHelpers'
+import { AppBodyFlex, AppHeaderFlex } from 'components/App'
 import { Field } from 'config/constants/types'
 import useToast from 'hooks/useToast'
 import { formatEther } from 'ethers/lib/utils'
@@ -34,40 +30,34 @@ import { fetchStakingUserData } from 'state/assetBackedStaking/fetchStakingUserD
 import { fetchStakingData } from 'state/assetBackedStaking/fetchStakingData'
 import { fetchUserTokenData } from 'state/user/fetchUserTokenBalances'
 
-import { deserializeToken, serializeToken } from 'state/user/hooks/helpers'
+import { deserializeToken } from 'state/user/hooks/helpers'
 // import Select, { OptionProps } from 'components/Select/Select'
 import DynamicSelect, { OptionProps } from 'components/Select/DynamicSelect'
-import { getStartDate, timeConverter } from 'utils/time'
-import { bn_maxer, calculateVotingPower, get_amount_and_multiplier } from './helper/calculator'
+import { getStartDate } from 'utils/time'
 import { StakingOption, FullStakeData, Action } from './components/stakingOption'
 import { useDeposit, useHarvest, useWithdrawAndHarvest } from './hooks/transactWithStaking'
 
 
-import { RowBetween, RowFixed } from '../../components/Layout/Row'
+import { RowBetween } from '../../components/Layout/Row'
 import ConnectWalletButton from '../../components/ConnectWalletButton'
 
 
 import { useTransactionAdder } from '../../state/transactions/hooks'
-import { getRedRequiemContract } from '../../utils'
 import { useApproveCallback, ApprovalState } from '../../hooks/useApproveCallback'
 import Dots from '../../components/Loader/Dots'
-import { useGetRequiemAmount, useUserBalances } from '../../state/user/hooks'
+import { useUserBalances } from '../../state/user/hooks'
 import Page from '../Page'
 
-
-const Collapsible = styled.div<{ open: boolean, isMobile: boolean }>`
-  display: flex;
-  flex-direction: column;
-  background-color: ${({ theme }) => theme.colors.backgroundAlt};
-  justify-content: center;
-  text-align: left;
-  width: 100%;
-  height:  ${({ open }) => !open ? '0%' : '100%'};
-  transform: ${({ open, isMobile }) => (isMobile ? !open ? 'translateX(0%) scaleY(0.0)' : 'translateX(-95%)  scaleY(1.0)' :
-    !open ? 'translateX(0%) scaleY(0.0)' : 'translateX(-90%)  scaleY(1.0)')};
-  transition: transform 300ms ease-in-out;
-  position:relative;
-`
+export function bn_maxer(bnArray: string[]) {
+  const bns = bnArray.map(str => BigNumber.from(str))
+  let max = BigNumber.from(0)
+  for (let j = 0; j < bnArray.length; j++) {
+    if (bns[j] > max) {
+      max = bns[j]
+    }
+  }
+  return max
+}
 
 const BoxLeft = styled(Box) <{ selected: boolean, isMobile: boolean }>`
   width: ${({ selected, isMobile }) => selected ? (isMobile ? '100%' : '60%') : '100%'};
@@ -617,7 +607,7 @@ export default function Staking({
                 setInputType(InputType.percent)
                 return onPercentageInput(val)
               }}
-              width={isMobile ? '90%' : '80%'}
+              width='80%'
             />
             {dropdown()}
           </Flex>

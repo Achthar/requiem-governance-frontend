@@ -2,7 +2,6 @@ import { useCallback } from 'react'
 import { deposit, harvest, withdrawAndHarvest } from 'utils/calls'
 import { useGovernanceStakingContract } from 'hooks/useContract'
 import { useWeb3React } from '@web3-react/core'
-import { Lock } from 'state/governance/reducer'
 
 export const useDeposit = () => {
   const governanceStakingContract = useGovernanceStakingContract()

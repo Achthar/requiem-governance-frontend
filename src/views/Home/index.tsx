@@ -29,11 +29,11 @@ const Home: React.FC = () => {
 
   const status: Status[] = ['past', 'past', 'past', 'future']
 
-  const headers = ['Get abREQ', 'Lock abREQ for GREQ', 'Stake GREQ and Earn', 'Propose and Vote!']
+  const headers = ['Get ABREQ', 'Lock ABREQ for GREQ', 'Stake GREQ and Earn', 'Propose and Vote!']
 
   const steps = [
     'You can get abREQ on our exchange or by selling assets to our treasury using bonds',
-    'Lock abREQ for some time to mint GREQ. Be careful with considerng for how long you wan tto lock as there is a penalty on early withdrawls.',
+    'Lock abREQ for some time to mint GREQ. Be careful with considerng for how long you wan to lock as there is a penalty on early withdrawls.',
     'Stake GREQ to earn rewards paid out in valuable assets such as USDC or WETH.',
     'Maximize and use your voting power to impact the direction the Requiem Finance Protocol will go.'
   ]
@@ -84,7 +84,7 @@ const Home: React.FC = () => {
           <Text fontSize={isMobile ? "14px" : "24px"} color='white' marginTop='10px'>
             {locking}
           </Text>
-          <Text fontSize={isMobile ? "14px" : "24px"} color='rgba(255, 40, 40, 0.75)' marginTop='10px'>
+          <Text fontSize={isMobile ? "14px" : "24px"} color='rgba(255, 40, 40, 0.75)' marginTop='10px' bold>
             The following steps are necessary to earn from the Requiem Protocol:
           </Text>
         </Container>
