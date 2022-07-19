@@ -435,6 +435,7 @@ export interface TokenEntry {
   address: { [chainId: number]: string }
   decimals: number
   projectLink?: string
+  name?: string
 }
 
 const tokens: { [tokenId: string]: TokenEntry } = {
@@ -475,6 +476,7 @@ const tokens: { [tokenId: string]: TokenEntry } = {
       110001: '0x36A82d7B21Da814951a8a04f2e094Ee9b01f3f58',
     },
     decimals: 18,
+    name: 'Asset-Backed REQ',
     projectLink: 'https://pancakeswap.finance/',
   },
   'greq': {
@@ -482,6 +484,7 @@ const tokens: { [tokenId: string]: TokenEntry } = {
     address: {
       43113: '0x713732D64F6d2c6FA12eA6642F72F030753f699e'
     },
+    name: 'Governance REQ',
     decimals: 18,
 
   },
@@ -528,6 +531,7 @@ const tokens: { [tokenId: string]: TokenEntry } = {
       110001: '0xE59c1Ddf4fAAC4Fa7C8c93d9392d4bBa55383268'
     },
     decimals: 6,
+    name: 'USD Coin',
     projectLink: ''
   },
   'tusd': {

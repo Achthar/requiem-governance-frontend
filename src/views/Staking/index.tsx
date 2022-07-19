@@ -1,8 +1,8 @@
 /* eslint-disable camelcase */
 import React, { useCallback, useEffect, useMemo, useState } from 'react'
 import styled from 'styled-components'
-import { ONE_18, Percent, TokenAmount } from '@requiemswap/sdk'
-import { Button, Text, ArrowDownIcon, CardBody, Slider, Box, Flex, useModal, useMatchBreakpoints } from '@requiemswap/uikit'
+import { ONE_18, Percent, TokenAmount, Token, currencyEquals } from '@requiemswap/sdk'
+import { Button, Text, ArrowDownIcon, CardBody, Slider, Box, Flex, useModal, useMatchBreakpoints, ArrowForwardIcon } from '@requiemswap/uikit'
 import { RouteComponentProps } from 'react-router'
 import { BigNumber } from '@ethersproject/bignumber'
 import { ABREQ, GREQ, USDC } from 'config/constants/tokens'
@@ -28,7 +28,9 @@ import { getGovernanceStakingContract } from 'utils/contractHelpers'
 import { Field } from 'config/constants/types'
 import useToast from 'hooks/useToast'
 import { formatEther } from 'ethers/lib/utils'
+import { TokenImage } from 'components/TokenImage'
 
+import { deserializeToken, serializeToken } from 'state/user/hooks/helpers'
 // import Select, { OptionProps } from 'components/Select/Select'
 import DynamicSelect, { OptionProps } from 'components/Select/DynamicSelect'
 import { getStartDate, timeConverter } from 'utils/time'
@@ -49,25 +51,52 @@ import { useGetRequiemAmount, useUserBalances } from '../../state/user/hooks'
 import Page from '../Page'
 
 
-const BoxLeft = styled(Box) <{ selected: boolean }>`
-  width: ${({ selected }) => selected ? '60%' : '100%'};
+const Collapsible = styled.div<{ open: boolean, isMobile: boolean }>`
+  display: flex;
+  flex-direction: column;
+  background-color: ${({ theme }) => theme.colors.backgroundAlt};
+  justify-content: center;
+  text-align: left;
+  width: 100%;
+  height:  ${({ open }) => !open ? '0%' : '100%'};
+  transform: ${({ open, isMobile }) => (isMobile ? !open ? 'translateX(0%) scaleY(0.0)' : 'translateX(-95%)  scaleY(1.0)' :
+    !open ? 'translateX(0%) scaleY(0.0)' : 'translateX(-90%)  scaleY(1.0)')};
+  transition: transform 300ms ease-in-out;
+  position:relative;
+`
+
+const BoxLeft = styled(Box) <{ selected: boolean, isMobile: boolean }>`
+  width: ${({ selected, isMobile }) => selected ? (isMobile ? '100%' : '60%') : '100%'};
   -webkit-transform-origin: top left; -webkit-transition: all 1s;
 `
 
-const BoxRight = styled(Box) <{ selected: boolean }>`
-height: 100%;
-justify-content: center;
-align-items: center;
-  margin-left: 20px;
-  width: ${({ selected }) => selected ? '40%' : '0px'};
-  height: ${({ selected }) => selected ? '100%' : '0px'};
-  -webkit-transform-origin: top right; -webkit-transition: all 1s;
+const BoxRight = styled(Box) <{ selected: boolean, isMobile: boolean }>`
+  align-content:center;
+  align-items:center;
+  margin-top: 3px;
+  background-color: rgba(255, 0, 0, 0.08);
+  border-left: solid 2px rgba(126, 126, 126, 0.25);
+  border-top: solid 2px rgba(126, 126, 126, 0.25);
+  border-right: solid 2px rgba(126, 126, 126, 0.25);
+  border-top-left-radius:  ${({ isMobile }) => !isMobile ? '16px' : '2px'};
+  border-top-right-radius: ${({ isMobile }) => !isMobile ? '16px' : '2px'};
+  height: 100%;
+  ${({ isMobile }) => !isMobile ?
+    `margin-left: 5px;
+     margin-right: 20px;`: ''}
+    width: ${({ selected, isMobile }) => selected ? (isMobile ? '100%' : '37%') : '0px'};
+    height: ${({ selected }) => selected ? '100%' : '0px'};
+    webkit-transform-origin: top ${({ isMobile }) => !isMobile ? 'right' : 'left'}; -webkit-transition: all 1s;
+  
+  }
 `
 
-const BoxBottom = styled(Box) <{ selected: boolean }>`
-  width: 100%;
+const BoxBottom = styled(Box) <{ selected: boolean, isMobile: boolean }>`
+  margin-right: 20px;
   height: ${({ selected }) => selected ? '100%' : '0px'};
-  -webkit-transform-origin: top right; -webkit-transition: all 1s;
+  width: ${({ selected, isMobile }) => selected ? (isMobile ? '100%' : '97.5%') : '0px'};
+  -webkit-transform-origin: top left; -webkit-transition: all 1s;
+  ${({ isMobile, selected }) => isMobile && selected ? 'margin-bottom: 15px;' : ''}
 `
 
 const TransformText = styled(Text) <{ selected: boolean }>`
@@ -105,19 +134,27 @@ const DropdownContainer = styled.div`
   -moz-transform: scale(0.66);
 `
 
+const ShareBox = styled(Flex) <{ isMobile: boolean }>`
+  margin-left: 4px;
+  margin-right: 4px;
+  align-items: center;
+  justify-content: center;
+  width:  ${({ isMobile }) => isMobile ? '100%' : '120px'};
+  flex-direction:row;
+`
+
 const CardBottom = styled(Card)`
-border-top-left-radius: 2px;
-border-top-right-radius: 2px;
-padding: 5px;
-border-left: solid 2px white;
-border-bottom: solid 2px white;
-border-right: solid 2px white;
+  border-top-left-radius: 2px;
+  border-top-right-radius: 2px;
+  background-color: rgba(255, 0, 0, 0.08);
+  border-left: solid 2px rgba(126, 126, 126, 0.25);
+  border-bottom: solid 2px rgba(126, 126, 126, 0.25);
+  border-right: solid 2px rgba(126, 126, 126, 0.25);
   width: 100%;
-  height: 80px;
 `
 
 const ActionButton = styled(Button)`
-border-radius: 5px;
+border-radius: 16px;
 `
 
 export default function Staking({
@@ -134,11 +171,6 @@ export default function Staking({
 
   const dispatch = useAppDispatch()
 
-  // const [tokenA, tokenB] = [useCurrency(chainId, currencyIdA) ?? undefined, useCurrency(chainId, currencyIdB) ?? undefined]
-  const [tokenA, tokenB] = useMemo(
-    () => [GREQ[chainId], USDC[chainId]],
-    [chainId],
-  )
 
   useEffect(() => {
     const _chain = getChain(chainId ?? 43113)
@@ -152,20 +184,20 @@ export default function Staking({
 
   const { isMobile } = useMatchBreakpoints()
 
-  const { balance: redReqBal, staked, locks, dataLoaded, supplyABREQ, supplyGREQ, lockedInGovernance
+  const { balance: redReqBal, staked, locks, userDataLoaded, supplyABREQ, supplyGREQ, lockedInGovernance
   } = useGovernanceInfo(chainId, account)
 
   const totalReqLockedUser = useMemo(() => {
     const lockKeys = Object.keys(locks)
     let totalReqLocked = BigNumber.from(0);
-    if (!dataLoaded) return '0'
+    if (!userDataLoaded) return '0'
     for (let i = 0; i < lockKeys.length; i++) {
       totalReqLocked = totalReqLocked.add(locks[lockKeys[i]].amount)
     }
 
     return formatEther(totalReqLocked)
   },
-    [locks, dataLoaded]
+    [locks, userDataLoaded]
   )
 
 
@@ -173,6 +205,7 @@ export default function Staking({
     staking,
     stakingDataLoaded
   } = useStakingInfo(chainId, account)
+
 
 
   interface DataWithId extends FullStakeData {
@@ -190,7 +223,7 @@ export default function Staking({
         totalStaked: formatEther(staking[key]?.totalStaked ?? '0'),
         rewardPool: formatEther(staking[key]?.rewardPool ?? '0'),
         rewardDebt: formatEther(staking[key]?.rewardDebt ?? '0'),
-        userStaked: formatEther(staking[key]?.userStaked ?? '0'),
+        userStaked: staking[key]?.userStaked ?? '0',
         pendingReward: formatEther(staking[key]?.pendingReward ?? '0'),
         rewardPerSecond: staking[key]?.rewardPerSecond ?? '0',
         totalReqLockedUser,
@@ -214,6 +247,20 @@ export default function Staking({
 
   // sets selected lock end of existing user locks
   const [toggledPoolId, togglePid] = useState(9999)
+
+  // const [tokenA, tokenB] = [useCurrency(chainId, currencyIdA) ?? undefined, useCurrency(chainId, currencyIdB) ?? undefined]
+  const [tokenA, tokenB] = useMemo(
+    () => {
+      if (toggledPoolId === 9999)
+        return [GREQ[chainId], USDC[chainId]]
+
+      return [deserializeToken(stakeData[toggledPoolId].staking), deserializeToken(stakeData[toggledPoolId].reward)]
+    }
+    ,
+    [chainId, toggledPoolId, stakeData],
+  )
+
+
 
   // define which action to take
   const [action, setAction] = useState(Action.stake)
@@ -247,21 +294,25 @@ export default function Staking({
     [pairs, chainId]
   )
 
+  const currentStakeData = useMemo(() => stakeData[toggledPoolId === 9999 ? 0 : toggledPoolId], [toggledPoolId, stakeData])
+
   const { balances } = useUserBalances(chainId)
 
   const [parsedAmounts, manualPerc] = useMemo(() => {
     setInputType(InputType.absolute)
 
     const value = tryParseTokenAmount(inputValue, tokenA)
-    const percentage = value ? Math.round(Number(formatEther(value.raw.mul('1000000000000000000').div(balances[tokenA.address].balance) ?? 1)) * 100) : 0
+    const _balance = balances[currentStakeData?.staking?.address]?.balance
+    const maxAmount = action === Action.stake ? (_balance === '0' ? '1' : _balance) : currentStakeData?.userStaked
+    const percentage = account ? value ? Math.round(Number(formatEther(value.raw.mul('1000000000000000000').div(maxAmount ?? 1) ?? 1)) * 100) : 0 : 0
     return [{
       [Field.CURRENCY_A]: tryParseTokenAmount(inputValue, tokenA),
       [Field.CURRENCY_B]: tryParseTokenAmount(inputValue, tokenB)
     },
-    Math.min(percentage, 100)
+    account && Math.min(percentage, 100)
     ]
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [tokenA, tokenB, inputValue, action, supplyABREQ, supplyGREQ])
+  }, [tokenA, tokenB, inputValue, action, supplyABREQ, supplyGREQ, account, currentStakeData])
 
 
 
@@ -272,15 +323,21 @@ export default function Staking({
         [Field.CURRENCY_A]: new TokenAmount(tokenA, '0'),
         [Field.CURRENCY_B]: new TokenAmount(tokenB, '0')
       }
-
-    const inputA = BigNumber.from(inputPercent).mul(balances[tokenA.address].balance).div(100)
-    const inputB = BigNumber.from(inputPercent).mul(balances[tokenB.address].balance).div(100)
+    let inputA: BigNumber
+    let inputB: BigNumber
+    if (action === Action.stake) {
+      inputA = BigNumber.from(inputPercent).mul(balances[tokenA.address].balance).div(100)
+      inputB = BigNumber.from(inputPercent).mul(balances[tokenB.address].balance).div(100)
+    } else {
+      inputA = BigNumber.from(inputPercent).mul(currentStakeData.userStaked).div(100)
+      inputB = BigNumber.from(inputPercent).mul(currentStakeData.userStaked).div(100)
+    }
     return {
       [Field.CURRENCY_A]: new TokenAmount(tokenA, inputA),
       [Field.CURRENCY_B]: new TokenAmount(tokenB, inputB)
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [tokenA, tokenB, inputPercent, action, supplyABREQ, supplyGREQ, balances])
+  }, [tokenA, tokenB, inputPercent, action, supplyABREQ, supplyGREQ, balances, currentStakeData])
 
   const finalAmount = useMemo(() => {
     return inputType === InputType.absolute ? parsedAmounts[Field.CURRENCY_A] : parsedAmountsPercentage[Field.CURRENCY_A]
@@ -289,9 +346,30 @@ export default function Staking({
     [inputType, parsedAmounts, parsedAmountsPercentage]
   )
 
+  const currentShare = useMemo(() => {
+    if (!currentStakeData) return 0;
+    const stakedTotal = Number(currentStakeData.totalStaked)
+    const userStaked = Number(formatEther(currentStakeData.userStaked))
+    return Math.round(userStaked / stakedTotal * 10000) / 100
+  }, [currentStakeData])
+
+
+
+  const newShare = useMemo(() => {
+    if (!finalAmount || !currentStakeData) return currentShare
+    const _staked = currentStakeData?.userStaked
+    const inp = Number(finalAmount.toSignificant(18))
+    const amountNew = action === Action.stake ? Number(new TokenAmount(tokenA, finalAmount.raw.add(_staked ?? '0')).toSignificant(18))
+      : Number(Number(formatEther(_staked)) - inp)
+
+    return Math.round(Math.abs(amountNew) / Math.max((Number(currentStakeData.totalStaked) + (action === Action.stake ? inp : -inp)), 1) * 10000) / 100
+  },
+    [currentStakeData, tokenA, action, finalAmount, currentShare]
+  )
+
   const { onDeposit } = useDeposit()
   const { onWithdrawAndHarvest } = useWithdrawAndHarvest()
-  const atMaxAmount = parsedAmounts[Field.CURRENCY_A]?.equalTo(new Percent('1'))
+
 
   // allowance handling
   const [signatureData, setSignatureData] = useState<{ v: number; r: string; s: string; deadline: number } | null>(null)
@@ -309,11 +387,11 @@ export default function Staking({
   const addTransaction = useTransactionAdder()
 
 
-
-  const buttonText = 'Stake GREQ'
-
-
-  const titleText = action === Action.stake ? 'Staked!' : 'Withdrawl complete!'
+  const [buttonText, titleText] = useMemo(() => {
+    return action === Action.stake ? [`Stake ${tokenA.symbol}`, 'Staked!'] : [`Withdraw ${tokenA.symbol}`, 'Withdrawl complete!']
+  },
+    [action, tokenA]
+  )
 
   const dropdownOptions = useMemo(() => {
     return [25, 50, 75, 100].map((y) => { return { label: `${String(y)}%`, value: y } })
@@ -361,30 +439,66 @@ export default function Staking({
   }
 
   const otherValue = useMemo(() => {
-    return inputType === InputType.absolute ? `${String(manualPerc)}%` : inputType === InputType.percent ? `${String(inputPercent)}%` : ''
+    return inputType === InputType.absolute ? (manualPerc ? `${String(manualPerc)}%` : '-') : inputType === InputType.percent ? `${String(inputPercent)}%` : ''
   },
     // eslint-disable-next-line react-hooks/exhaustive-deps
     [inputType, manualPerc, inputPercent]
   )
 
   const bottomBox = (_stakeData: DataWithId): JSX.Element => {
-    return (<CardBottom>
-      <Flex flexDirection='row' height='50px' alignItems='space-between' justifyContent='space-between'>
+    return (
+      <CardBottom>
+        <Flex flexDirection={isMobile ? 'column' : 'row'} alignItems='space-between' justifyContent='space-between' width='100%' >
 
-        <Flex flexDirection='column'>
-          <Text>Pending reward</Text>
-          <Text>{_stakeData.pendingRewardUsd}</Text>
+          <Flex width={isMobile ? '100%' : '50%'} height='50px' marginTop='3px' flexDirection='row'>
+            <Button
+              variant="secondary"
+              width="70%"
+              mb="8px"
+              style={{ borderTopRightRadius: '3px', borderBottomRightRadius: '3px', marginLeft: '3px', marginRight: '3px', marginBottom: '5px' }}
+            >
+              <Flex flexDirection='column'>
+                <Text>Your Reward</Text>
+                <Flex flexDirection='row'>
+                  <Text marginRight='4px'>{_stakeData.pendingRewardUsd}</Text>
+                  <TokenImage token={deserializeToken(_stakeData.reward)} chainId={chainId} width={20} height={20} />
+                </Flex>
+              </Flex>
+            </Button>
+
+            <Button
+              onClick={() => { return null }}
+              variant="primary"
+              width="30%"
+              mb="8px"
+              style={{ borderTopLeftRadius: '3px', borderBottomLeftRadius: '3px', marginLeft: '3px', marginRight: '3px', marginBottom: '5px' }}
+            >
+              Claim
+            </Button>
+          </Flex>
+          <Flex flexDirection={isMobile ? 'row' : 'column'} justifyContent='center'>
+            <Text textAlign='center'>Your Pool Share</Text>
+
+            <ShareBox isMobile={isMobile}>
+              {finalAmount?.raw.gt(0) ? (
+                <>
+                  <Text> {currentShare}%</Text>
+                  <ArrowForwardIcon />
+                  <Text color={action === Action.stake ? 'green' : 'red'}> {newShare}%</Text>
+                </>
+              ) : (<Text> {currentShare}%</Text>)}
+            </ShareBox>
+          </Flex>
+          <ActionButton
+            variant='primary'
+            onClick={() => { return setAction(Action.withdraw === action ? Action.stake : Action.withdraw) }} // {onAttemptToApprove}
+            width={isMobile ? '90%' : "150px"}
+            mr="0.5rem"
+          >
+            {action === Action.withdraw ? 'Deposit instead' : 'Withdraw instead'}
+          </ActionButton>
         </Flex>
-        <ActionButton
-          variant='primary'
-          onClick={() => { return setAction(Action.withdraw === action ? Action.stake : Action.withdraw) }} // {onAttemptToApprove}
-          width="80px"
-          mr="0.5rem"
-        >
-          {action === Action.withdraw ? 'Deposit instead' : 'Withdraw instead'}
-        </ActionButton>
-      </Flex>
-    </CardBottom>)
+      </CardBottom>)
   }
 
 
@@ -392,7 +506,7 @@ export default function Staking({
     return (
       <DropdownContainer onClick={() => { setInputType(InputType.dropdown) }}>
         <DynamicSelect options={dropdownOptions}
-          otherValue={otherValue}
+          otherValue={otherValue ?? '-'}
           otherActive={!(inputType === InputType.dropdown)}
           onChange={({ label, value }: OptionProps) => {
             setInputType(InputType.dropdown)
@@ -404,15 +518,19 @@ export default function Staking({
 
   const pendingText = action === Action.stake ? 'Staking' : 'Withdrawing'
 
-  const inputPanel = (text, balanceText, stakedUser: string): JSX.Element => {
+  const inputPanel = (text, balanceText, _tokenStaked: TokenAmount): JSX.Element => {
+
+    const atMaxAmount = parsedAmounts[Field.CURRENCY_A]?.equalTo(new Percent('1'))
+
+    const _token = _tokenStaked.token
     return (
-      <Flex flexDirection='column' marginRight={isMobile ? '0' : '20px'}>
+      <Flex flexDirection='column' marginLeft='3px' marginRight='3px' marginTop='3px'>
         <Box my="2px" >
           <CurrencyInputPanelExpanded
             width='100%'
             balanceText={balanceText}
-            balances={action === Action.stake ? { [tokenA.address]: new TokenAmount(tokenA, balances?.[tokenA.address]?.balance) } :
-              { [tokenA.address]: new TokenAmount(tokenA, stakedUser) }}
+            balances={action === Action.stake ? { [_token.address]: new TokenAmount(_token, balances?.[_token.address]?.balance) } :
+              { [_token.address]: _tokenStaked }}
             isLoading={isLoading}
             chainId={chainId}
             account={account}
@@ -421,9 +539,11 @@ export default function Staking({
               setInputType(InputType.absolute)
               return onCurrencyInput(val)
             }}
-            onMax={() => onCurrencyInput(formatEther(action === Action.stake ? balances?.[tokenA.address]?.balance : balances?.[tokenA.address]?.balance))}
+            onMax={() => onCurrencyInput(
+              formatEther(action === Action.stake ? balances?.[_token.address]?.balance : _tokenStaked.raw.toString())
+            )}
             showMaxButton={!atMaxAmount}
-            currency={action === Action.stake ? tokenA : tokenB}
+            currency={_token}
             label={text}
             // hideInput={action === Action.stake}
             // reducedLine={action === Action.stake}
@@ -437,6 +557,7 @@ export default function Staking({
               min={0}
               max={100}
               step={1}
+              disabled={!account}
               value={inputType === InputType.percent ? inputPercent : manualPerc}
               onValueChanged={(val) => {
                 setInputType(InputType.percent)
@@ -502,16 +623,18 @@ export default function Staking({
     const indexMax = Object.values(Object.values(stakeData)).length - 1
 
     return (
-      <Flex flexDirection='column' marginLeft={isMobile ? '0' : '20px'} maxHeight='1250px' minWidth='400px'>
+      <Flex flexDirection='column' marginLeft={isMobile ? '0' : '20px'} maxHeight='1550px' minWidth='400px'>
         <GeneralLockContainer isMobile={isMobile}>
           {
-            account && (
-              Object.values(stakeData).map((data, index) => {
+            Object.values(stakeData).map((data, index) => {
 
-                return (
-                  <Flex flexDirection='row' width='100%' justifyContent='space-between' alignItems='space-between'>
-                    <BoxLeft selected={data.id === toggledPoolId}>
+              return (
+                <Flex flexDirection='column'>
+                  <Flex flexDirection={isMobile ? 'column' : 'row'} width='100%' >
+                    <BoxLeft selected={data.id === toggledPoolId} isMobile={isMobile}>
                       <StakingOption
+                        isMobile={isMobile}
+                        account={account}
                         stakeData={data}
                         onSelect={() => {
                           setAction(Action.stake)
@@ -519,33 +642,33 @@ export default function Staking({
                           togglePid(data.id)
                         }}
                         reqPrice={reqPrice}
-                        refTime={now}
                         isFirst={index === 0}
                         isLast={indexMax === index}
                         selected={data.id === toggledPoolId}
                         hideSelect={data.id === toggledPoolId}
                         hideActionButton={false}
                       />
-                      <BoxBottom selected={data.id === toggledPoolId}>
-                        {data.id === toggledPoolId && bottomBox(data)}
-                      </BoxBottom>
                     </BoxLeft>
 
-                    <BoxRight selected={data.id === toggledPoolId}>
+                    <BoxRight selected={data.id === toggledPoolId} isMobile={isMobile}>
                       {data.id === toggledPoolId && inputPanel(
                         <TransformText selected={action === Action.stake}>
-                          {action === Action.stake ? `Select amount to Stake` : 'Input'}
+                          {action === Action.stake ? `Select amount to Stake` : 'Select Amount to Withdraw'}
                         </TransformText>,
                         action === Action.stake ? 'Balance' : 'Staked',
-                        data.userStaked
+                        new TokenAmount(deserializeToken(data.staking), data?.userStaked ?? '0')
                       )
                       }
                     </BoxRight>
                   </Flex>
-                )
-              }))
+                  <BoxBottom selected={data.id === toggledPoolId} isMobile={isMobile}>
+                    {data.id === toggledPoolId && account && bottomBox(data)}
+                  </BoxBottom>
+                </Flex>
+              )
+            })
           }
-        </GeneralLockContainer>
+        </GeneralLockContainer >
 
       </Flex >
     )
@@ -561,12 +684,7 @@ export default function Staking({
           subtitle='Stake Governance Requiem to earn a profit share from the Requiem Protocol.'
           noConfig
         />
-        {/* <Flex flexDirection={isMobile ? 'column' : 'row-reverse'} marginRight={isMobile ? '0px' : '20px'} marginTop='10px' alignItems='space-between' justifyContent='space-between'> */}
-        {/* <Flex maxHeight='1150px' flexDirection='column' marginLeft={isMobile ? '' : '60px'} >
-}
-          </Flex> */}
         {renderStakeData()}
-        {/* </Flex> */}
 
       </AppBodyFlex>
     </Page >

@@ -20,8 +20,9 @@ export interface GovernanceState {
   data: {
     [chainId: number]: {
       publicDataLoaded: boolean
-      dataLoaded: boolean
+      userDataLoaded: boolean
       stakingDataLoaded: boolean
+      stakingUserDataLoaded: boolean
       balance: string
       staked: string
       locks: { [end: number]: Lock },
@@ -39,8 +40,9 @@ const initialState: GovernanceState = {
   data: {
     43113: {
       publicDataLoaded: false,
-      dataLoaded: false,
+      userDataLoaded: false,
       stakingDataLoaded: false,
+      stakingUserDataLoaded: false,
       balance: '0',
       staked: '0',
       locks: {},
@@ -59,10 +61,10 @@ export default createReducer<GovernanceState>(initialState, (builder) =>
       // state.data[state.referenceChainId].dataLoaded = false;
     })
     .addCase(fetchGovernanceUserDetails.fulfilled, (state, action) => {
-      state.data[state.referenceChainId] = { ...state.data[state.referenceChainId], dataLoaded: true, ...action.payload }
+      state.data[state.referenceChainId] = { ...state.data[state.referenceChainId], userDataLoaded: true, ...action.payload }
     })
     .addCase(fetchGovernanceUserDetails.rejected, (state, { error }) => {
-      state.data[state.referenceChainId].dataLoaded = true;
+      state.data[state.referenceChainId].userDataLoaded = true;
       console.log(error, state)
       console.error(error.message);
 
@@ -78,7 +80,7 @@ export default createReducer<GovernanceState>(initialState, (builder) =>
       }
     })
     .addCase(fetchGovernanceData.rejected, (state, { error }) => {
-      state.data[state.referenceChainId].dataLoaded = true;
+      state.data[state.referenceChainId].userDataLoaded = true;
       console.log(error, state)
       console.error(error.message);
     })
@@ -93,7 +95,7 @@ export default createReducer<GovernanceState>(initialState, (builder) =>
           ...action.payload.stakeUserData[i]
         }
       }
-      state.data[state.referenceChainId].stakingDataLoaded = true
+      state.data[state.referenceChainId].stakingUserDataLoaded = true
 
     })
     .addCase(fetchStakeUserDetails.rejected, (state, { error }) => {
@@ -113,6 +115,9 @@ export default createReducer<GovernanceState>(initialState, (builder) =>
           ...action.payload[i]
         }
       }
+
+      state.data[state.referenceChainId].stakingDataLoaded = true
+
     })
     .addCase(fetchStakeData.rejected, (state, { error }) => {
       // state.data[state.referenceChainId].dataLoaded = true;

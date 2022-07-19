@@ -117,7 +117,7 @@ export default function Governance({
 
   const { isMobile } = useMatchBreakpoints()
 
-  const { balance: redReqBal, staked, locks, dataLoaded, supplyABREQ, supplyGREQ
+  const { balance: redReqBal, staked, locks, userDataLoaded, supplyABREQ, supplyGREQ
   } = useGovernanceInfo(chainId, account)
 
   const now = Math.round((new Date()).getTime() / 1000);

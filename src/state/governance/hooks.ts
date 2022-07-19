@@ -46,7 +46,7 @@ export function useGovernanceInfo(
     account: string
     // this is input from the balances state
 ): {
-    dataLoaded: boolean
+    userDataLoaded: boolean
     balance: string
     locks: {
         [id: number]: {
@@ -62,7 +62,7 @@ export function useGovernanceInfo(
     lockedInGovernance: string
     maxtime: number
 } {
-    const { dataLoaded } = useGovernanceState(chainId)
+    const { userDataLoaded } = useGovernanceState(chainId)
 
     const dispatch = useAppDispatch()
 
@@ -70,16 +70,16 @@ export function useGovernanceInfo(
 
     useEffect(() => {
         dispatch(fetchGovernanceData({ chainId }))
-        if (!dataLoaded && account) {
+        if (!userDataLoaded && account) {
             dispatch(fetchGovernanceUserDetails({ chainId, account }))
         }
 
-    }, [account, chainId, dataLoaded, slowRefresh, dispatch])
+    }, [account, chainId, userDataLoaded, slowRefresh, dispatch])
 
     const { balance, locks, staked, supplyABREQ, supplyGREQ, maxtime, lockedInGovernance } = useGovernanceState(chainId)
 
     return {
-        dataLoaded,
+        userDataLoaded,
         balance,
         locks,
         staked,
@@ -96,6 +96,7 @@ export function useStakingInfo(
     // this is input from the balances state
 ): {
     stakingDataLoaded: boolean
+    stakingUserDataLoaded: boolean
     staking: {
         [id: number]: {
             reward: SerializedToken
@@ -108,24 +109,26 @@ export function useStakingInfo(
         }
     }
 } {
-    const { stakingDataLoaded } = useGovernanceState(chainId)
+    const { stakingDataLoaded, stakingUserDataLoaded } = useGovernanceState(chainId)
 
     const dispatch = useAppDispatch()
 
-    const { slowRefresh } = useRefresh()
+    const { slowRefresh, fastRefresh } = useRefresh()
 
     useEffect(() => {
         dispatch(fetchStakeData({ chainId }))
-        if (!stakingDataLoaded && account) {
+        if (!stakingUserDataLoaded && account) {
             dispatch(fetchStakeUserDetails({ chainId, account }))
         }
 
-    }, [account, chainId, stakingDataLoaded, slowRefresh, dispatch])
+    }, [account, chainId, stakingUserDataLoaded, slowRefresh, dispatch])
+
 
     const { staking } = useGovernanceState(chainId)
 
     return {
         stakingDataLoaded,
+        stakingUserDataLoaded,
         staking
     }
 
