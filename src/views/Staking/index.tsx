@@ -687,6 +687,7 @@ export default function Staking({
                   <Flex flexDirection={isMobile ? 'column' : 'row'} width='100%' >
                     <BoxLeft selected={data.id === toggledPoolId} isMobile={isMobile}>
                       <StakingOption
+                        chainId={chainId}
                         isMobile={isMobile}
                         account={account}
                         stakeData={data}

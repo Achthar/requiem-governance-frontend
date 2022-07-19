@@ -1,24 +1,14 @@
 import React, { useMemo, useState } from 'react'
+import { ArrowDownCircle } from 'react-feather'
 import { BigNumber } from 'ethers'
 import { formatEther } from 'ethers/lib/utils'
 import styled from 'styled-components'
-import { Card, Flex, Text, Skeleton, Button, Heading, Tag, Box, ChevronRightIcon, ChevronDownIcon } from '@requiemswap/uikit'
-import { DeserializedFarm } from 'state/types'
-import { useTranslation } from 'contexts/Localization'
-import ExpandableSectionButton from 'components/ExpandableSectionButton'
-import { getFullDisplayBalance, formatNumber, formatSerializedBigNumber, formatBigNumber, formatGeneralNumber } from 'utils/formatBalance'
-import { fetchGovernanceUserDetails } from 'state/governance/fetchGovernanceUserDetails'
-import { useAppDispatch } from 'state'
-import { fetchStakeUserDetails } from 'state/governance/fetchStakeUserDetails'
-import useToast from 'hooks/useToast'
-import Dots from 'components/Loader/Dots'
+import { Flex, Text, Button, Box, ChevronRightIcon, ChevronDownIcon } from '@requiemswap/uikit'
 import { SerializedToken } from 'config/constants/types'
-import { Lock } from 'state/governance/reducer'
-import { prettifySeconds } from 'config'
-import { ApprovalState } from 'hooks/useApproveCallback'
 import { TokenImage } from 'components/TokenImage'
 import { deserializeToken } from 'state/user/hooks/helpers'
-import { useEmergencyWithdrawFromLock, useWithdrawFromLock } from '../hooks/useWithdrawFromLock'
+import { Link } from 'react-router-dom'
+import getChain from 'utils/getChain'
 
 
 const Line = styled.hr`
@@ -47,16 +37,13 @@ const StyledButton = styled(Button) <{ mB: string, width: string }>`
   marginBottom: ${({ mB }) => mB};
 `
 
-const ApprovalButton = styled(Button) <{ emergency: boolean }>`
-  background-color:${({ emergency }) => emergency ? 'linear-gradient(red, black)' : 'none'};
-  ${({ emergency }) => emergency ? 'background-image:linear-gradient(rgba(128, 0, 0, 0.76), black);' : ''}
-  color: ${({ emergency }) => emergency ? 'white' : 'none'};
-  border: none;
-  height: 25px;
-  box-shadow: none;
-  border-radius: 16px;
-  width: 95%;
-`
+const LinkIcon = styled(ArrowDownCircle)`
+  transform: rotate(230deg);
+  width: 12px;
+  min-width: 12px;
+  height: 12px;
+  color: ${({ theme }) => theme.colors.text};
+`;
 
 
 const StakeBox = styled(Box) <{ isFirst: boolean, isLast: boolean, selected: boolean }>`
@@ -82,6 +69,9 @@ const ImageCont = styled.div`
   width: 30px;
 `
 
+const SSpan = styled.span`
+`
+
 export interface FullStakeData {
   id?: number
   staking: SerializedToken
@@ -98,6 +88,7 @@ export interface FullStakeData {
 interface StakingOptionsProps {
   isMobile: boolean
   account: string
+  chainId: number
   stakeData: FullStakeData
   onSelect: () => void
   reqPrice: number
@@ -146,6 +137,7 @@ const StakingOptionHeading: React.FC<StakingHeaderProps> = ({ onSelect, refTime,
 export const StakingOption: React.FC<StakingOptionsProps> = (
   {
     isMobile,
+    chainId,
     account,
     stakeData,
     onSelect,
@@ -179,7 +171,9 @@ export const StakingOption: React.FC<StakingOptionsProps> = (
 
   const token = stakeData.staking
   const reward = stakeData.reward
-  const headerColor = 'rgba(255, 90, 90, 0.66)';
+  const headerColor = 'rgba(255, 40, 40, 0.5)';
+
+  const chain = getChain(chainId)
 
   return (
     <StakeBox isFirst={isFirst} isLast={isLast} selected={selected}>
@@ -194,17 +188,24 @@ export const StakingOption: React.FC<StakingOptionsProps> = (
         >
           <Flex flexDirection={hideSelect ? (isMobile ? 'row' : 'column') : 'row'} justifyContent={isMobile ? 'center' : "space-betwen"} alignItems='center'>
             <Flex flexDirection='column' width='100%' justifyContent='center' alignItems='center'>
-              <Text mb="4px" bold mr='20px' color={headerColor}>Asset</Text>
+              <Text mb="4px" bold mr='10px' color={headerColor}>Asset</Text>
               <Flex flexDirection='row' justifyContent="space-betwen" alignItems='center' width={isMobile ? '100%' : '180px'}>
                 <ImageCont>
                   <TokenImage token={deserializeToken(token)} chainId={token.chainId} width={35} height={35} />
                 </ImageCont>
                 <Flex flexDirection='column'>
-                  <Text mb="2px" bold mr='10px' ml='10px'>{token.symbol}</Text>
+                  <Flex flexDirection='row'>
+                    <Text mb="2px" bold mr='2px' ml='10px'>{token.symbol}</Text>
+                    {token.symbol === 'GREQ' && (
+                      <SSpan as={Link} to={`/${chain}/governance`}>
+                        <LinkIcon />
+                      </SSpan>
+                    )}
+                  </Flex>
                   {!isMobile && (<Text mr='10px' ml='10px' fontSize='10px'>{token.name}</Text>)}
+
                 </Flex>
               </Flex>
-              {isMobile && (<Text mr='10px' ml='-20px' fontSize='10px'>{token.name}</Text>)}
             </Flex>
             <Flex flexDirection='column' width='100%' justifyContent='center' alignItems='center' marginTop={hideSelect ? '10px' : ''}>
               <Text mb="4px" bold mr='20px' color={headerColor}>Payout</Text>
