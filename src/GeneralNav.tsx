@@ -25,7 +25,7 @@ import iconTwitter from './assets/sidebar/ic-twitter.svg';
 import iconDoc from './assets/sidebar/ic-doc.svg';
 import poolsGov from './assets/sidebar/ic-pools.svg';
 import iconLiquidity from './assets/liquidity.svg';
-import iconStake from './assets/stake.svg';
+import iconVote from './assets/vote-icon.svg';
 
 import bond from './assets/bonds2.svg'
 import iconREQTransparent from './assets/REQ_Transparent.png';
@@ -76,6 +76,20 @@ const ImageGov = styled.img<{ open: boolean }>`
     `;
 
 
+const Image = styled.img`
+    transform: scale(1.5, 1.5);
+    filter:brightness(395%) contrast(80%) grayscale(1);
+    width: 20px;
+    height: 20px;
+    margin-right: 15px;
+    `;
+
+const ImageTop = styled.img`
+    transform: scale(1.5, 1.5);
+    filter:brightness(395%) contrast(80%) grayscale(1);
+    margin-left: 5px;
+    `;
+
 interface NavContainerProps {
   isMobile: boolean
   chainId?: number
@@ -106,7 +120,7 @@ const NavContainer: React.FC<NavContainerProps> = ({ isMobile, chainId, onClickI
       </StyledNavItem>
       <StyledNavItem onClick={handleClick}>
         <StyledNavLink to={`/${chain}/voting`}>
-          <img src={iconGovernment} alt='' />
+          <Image src={iconVote} alt='' />
           Voting
         </StyledNavLink>
       </StyledNavItem>
@@ -558,8 +572,8 @@ export const configDataEntries: (chainId: number) => MenuEntry[] = (chainId) => 
     },
     {
       label: 'Voting',
-      icon: iconGovernment,
-      iconSelected: iconGovernment,
+      icon: iconVote,
+      iconSelected: iconVote,
       href: `/${chain}/voting`,
     },
     {
@@ -622,7 +636,9 @@ const GeneralNav: React.FC = () => {
       >
         <Flex flexDirection="row">
           <ImageContainer>
-            <img src={fbIcon ?? 'https://requiem-finance.s3.eu-west-2.amazonaws.com/logos/requiem/REQT_large.png'} alt='' width='40px' />
+            {fbLabel === 'Voting' ?
+              (<ImageTop src={fbIcon ?? 'https://requiem-finance.s3.eu-west-2.amazonaws.com/logos/requiem/REQT_large.png'} alt='' width='80px' />)
+              : (<img src={fbIcon ?? 'https://requiem-finance.s3.eu-west-2.amazonaws.com/logos/requiem/REQT_large.png'} alt='' width='40px' />)}
           </ImageContainer>
           <Text bold textAlign='center' paddingTop='9px' marginLeft='15px'>
             {fbLabel}

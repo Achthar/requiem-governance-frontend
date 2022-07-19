@@ -158,7 +158,7 @@ export const StakingOption: React.FC<StakingOptionsProps> = (
 ) => {
 
   const [reqValUser, totalReqVal] = useMemo(() => {
-    if (!stakeData) return [0, 0]
+    if (!stakeData || stakeData.reward.symbol.includes('abREQ')) return [0, 0]
     if (!stakeData.reward.symbol.includes('REQ') && !stakeData.staking.symbol.includes('REQ')) return [0, 0]
     return [Math.round(Number(stakeData.totalReqLockedUser) * reqPrice), Math.round(Number(stakeData.totalStaked) * reqPrice)]
   },
@@ -231,14 +231,14 @@ export const StakingOption: React.FC<StakingOptionsProps> = (
           >
             <Text mb="4px" bold mr='20px' color={headerColor} textAlign='center' >Staked</Text>
             <Flex justifyContent="space-between" width='90%'>
-              <Text size='5px'>Total</Text>
-              <Text >{Number(stakeData.totalStaked).toLocaleString()}</Text>
-              <Text >${totalReqVal.toLocaleString()}</Text>
+              <Text size='5px' width='20%'>Total</Text>
+              <Text width='20%'>{Number(stakeData.totalStaked).toLocaleString()}</Text>
+              <Text width='20%'>${totalReqVal.toLocaleString()}</Text>
             </Flex>
             {account && (<Flex justifyContent="space-between" width='90%'>
-              <Text size='5px'>Yours</Text>
-              <Text >{Number(formatEther(stakeData?.userStaked ?? '0')).toLocaleString()}</Text>
-              <Text >${reqValUser.toLocaleString()}</Text>
+              <Text size='5px' width='20%'>Yours</Text>
+              <Text width='20%'>{Number(formatEther(stakeData?.userStaked ?? '0')).toLocaleString()}</Text>
+              <Text width='20%'>${reqValUser.toLocaleString()}</Text>
             </Flex>)}
             {(hideSelect || isMobile) && (
               <Flex flexDirection='column' width={isMobile ? '60%' : '70%'} alignSelf='center' marginTop={isMobile ? '15px' : '5px'}>

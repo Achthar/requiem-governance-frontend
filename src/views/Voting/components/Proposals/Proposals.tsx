@@ -49,7 +49,7 @@ const Proposals = () => {
   return (
     <Container py="40px">
       <Heading as="h2" scale="xl" mb="32px" id="voting-proposals" mt='30px'>
-        {t('Proposals')}
+        Coming soon...
       </Heading>
       <Card>
         <TabMenu proposalType={proposalType} onTypeChange={handleProposalTypeChange} />

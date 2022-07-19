@@ -117,7 +117,7 @@ export function useStakingInfo(
 
     useEffect(() => {
         dispatch(fetchStakeData({ chainId }))
-        if (!stakingUserDataLoaded && account) {
+        if (account) {
             dispatch(fetchStakeUserDetails({ chainId, account }))
         }
 

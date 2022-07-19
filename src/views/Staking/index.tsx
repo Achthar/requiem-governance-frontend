@@ -2,7 +2,7 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react'
 import styled from 'styled-components'
 import { ONE_18, Percent, TokenAmount, Token, currencyEquals } from '@requiemswap/sdk'
-import { Button, Text, ArrowDownIcon, CardBody, Slider, Box, Flex, useModal, useMatchBreakpoints, ArrowForwardIcon } from '@requiemswap/uikit'
+import { Button, Text, ArrowDownIcon, CardBody, Slider, Box, Flex, useModal, useMatchBreakpoints, ArrowForwardIcon, RefreshIcon } from '@requiemswap/uikit'
 import { RouteComponentProps } from 'react-router'
 import { BigNumber } from '@ethersproject/bignumber'
 import { ABREQ, GREQ, USDC } from 'config/constants/tokens'
@@ -12,6 +12,7 @@ import { useGovernanceInfo, useStakingInfo } from 'state/governance/hooks'
 import useActiveWeb3React from 'hooks/useActiveWeb3React'
 import { useChainIdHandling } from 'hooks/useChainIdHandle'
 import { useNetworkState } from 'state/globalNetwork/hooks'
+import { ethers } from 'ethers'
 import { tryParseAmount, tryParseTokenAmount } from 'utils/numberFormatter'
 import Card from 'components/Card'
 import { getGovernanceRequiemAddress, getGovernanceStakingAddress } from 'utils/addressHelpers'
@@ -29,6 +30,9 @@ import { Field } from 'config/constants/types'
 import useToast from 'hooks/useToast'
 import { formatEther } from 'ethers/lib/utils'
 import { TokenImage } from 'components/TokenImage'
+import { fetchStakingUserData } from 'state/assetBackedStaking/fetchStakingUserData'
+import { fetchStakingData } from 'state/assetBackedStaking/fetchStakingData'
+import { fetchUserTokenData } from 'state/user/fetchUserTokenBalances'
 
 import { deserializeToken, serializeToken } from 'state/user/hooks/helpers'
 // import Select, { OptionProps } from 'components/Select/Select'
@@ -36,7 +40,7 @@ import DynamicSelect, { OptionProps } from 'components/Select/DynamicSelect'
 import { getStartDate, timeConverter } from 'utils/time'
 import { bn_maxer, calculateVotingPower, get_amount_and_multiplier } from './helper/calculator'
 import { StakingOption, FullStakeData, Action } from './components/stakingOption'
-import { useDeposit, useWithdrawAndHarvest } from './hooks/transactWithStaking'
+import { useDeposit, useHarvest, useWithdrawAndHarvest } from './hooks/transactWithStaking'
 
 
 import { RowBetween, RowFixed } from '../../components/Layout/Row'
@@ -70,7 +74,7 @@ const BoxLeft = styled(Box) <{ selected: boolean, isMobile: boolean }>`
   -webkit-transform-origin: top left; -webkit-transition: all 1s;
 `
 
-const BoxRight = styled(Box) <{ selected: boolean, isMobile: boolean }>`
+const BoxRight = styled(Box) <{ selected: boolean, isMobile: boolean, connected: boolean }>`
   align-content:center;
   align-items:center;
   margin-top: 3px;
@@ -80,6 +84,10 @@ const BoxRight = styled(Box) <{ selected: boolean, isMobile: boolean }>`
   border-right: solid 2px rgba(126, 126, 126, 0.25);
   border-top-left-radius:  ${({ isMobile }) => !isMobile ? '16px' : '2px'};
   border-top-right-radius: ${({ isMobile }) => !isMobile ? '16px' : '2px'};
+  ${({ connected }) => !connected ? `
+  border-bottom-left-radius:  16px;
+  border-bottom-right-radius: 16px;
+  ` : ''}
   height: 100%;
   ${({ isMobile }) => !isMobile ?
     `margin-left: 5px;
@@ -154,7 +162,8 @@ const CardBottom = styled(Card)`
 `
 
 const ActionButton = styled(Button)`
-border-radius: 16px;
+  border-radius: 16px;
+  align-sel:center;
 `
 
 export default function Staking({
@@ -318,7 +327,7 @@ export default function Staking({
 
   const parsedAmountsPercentage = useMemo(() => {
     setInputType(InputType.percent)
-    if (!balances)
+    if (!balances || !balances[tokenA.address]?.balance || !balances[tokenB.address]?.balance)
       return {
         [Field.CURRENCY_A]: new TokenAmount(tokenA, '0'),
         [Field.CURRENCY_B]: new TokenAmount(tokenB, '0')
@@ -369,11 +378,12 @@ export default function Staking({
 
   const { onDeposit } = useDeposit()
   const { onWithdrawAndHarvest } = useWithdrawAndHarvest()
+  const { onHarvest } = useHarvest()
 
 
   // allowance handling
   const [signatureData, setSignatureData] = useState<{ v: number; r: string; s: string; deadline: number } | null>(null)
-  const [approval, approveCallback] = useApproveCallback(chainId, account, parsedAmounts[Field.CURRENCY_A], getGovernanceStakingAddress(chainId))
+  const [approval, approveCallback] = useApproveCallback(chainId, account, new TokenAmount(tokenA, ethers.constants.MaxUint256), getGovernanceStakingAddress(chainId))
 
   const [approvalRreq, approveCallbackRreq] = useApproveCallback(
     chainId, account,
@@ -388,9 +398,9 @@ export default function Staking({
 
 
   const [buttonText, titleText] = useMemo(() => {
-    return action === Action.stake ? [`Stake ${tokenA.symbol}`, 'Staked!'] : [`Withdraw ${tokenA.symbol}`, 'Withdrawl complete!']
+    return action === Action.stake ? [`Stake ${currentStakeData?.staking?.symbol}`, 'Staked!'] : [`Withdraw ${currentStakeData?.staking?.symbol}`, 'Withdrawl complete!']
   },
-    [action, tokenA]
+    [action, currentStakeData]
   )
 
   const dropdownOptions = useMemo(() => {
@@ -412,13 +422,18 @@ export default function Staking({
       await onWithdrawAndHarvest(finalAmount.toBigNumber().toHexString())
     }
 
-    dispatch(fetchGovernanceUserDetails({ chainId, account }))
+    dispatch(fetchStakingData({ chainId }))
+    dispatch(fetchStakingUserData({ chainId, account }))
+    dispatch(fetchUserTokenData({ chainId, account, additionalTokens: [] }))
   }
 
   const { toastSuccess, toastError } = useToast()
   const [pendingTx, setPendingTx] = useState(false)
 
-  const summaryText = action === Action.stake ? `Stake ${parsedAmounts[Field.CURRENCY_A]?.toSignificant(3)}` : `Withdraw ${parsedAmounts[Field.CURRENCY_A]?.toSignificant(3)}`
+  const summaryText = useMemo(() => action === Action.stake ? `Stake ${finalAmount?.toSignificant(3)} ${finalAmount?.token?.symbol}` : `Withdraw ${finalAmount?.toSignificant(3)} ${finalAmount?.token?.symbol}}`,
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [action, finalAmount]
+  )
 
   // the final transaction function
   const transactionFunc = async () => {
@@ -435,8 +450,38 @@ export default function Staking({
       console.error(e)
     } finally {
       setPendingTx(false)
+      // reset inputs
+      onCurrencyInput('0')
+      onPercentageInput(0)
+
+      // fetch new data
+      dispatch(fetchStakingData({ chainId }))
+      dispatch(fetchUserTokenData({ chainId, account, additionalTokens: [] }))
+      dispatch(fetchStakingUserData({ chainId, account }))
     }
   }
+
+
+  // the final transaction function
+  const harvestTransactionFunc = async () => {
+    // setPendingTx(true)
+    try {
+      await onHarvest()
+      toastSuccess('Rewards paid out', `Your ${currentStakeData?.reward?.symbol} rewards have been sent to your wallet.`)
+      // onDismiss()
+    } catch (e) {
+      // toastError(
+      //   'Error',
+      //   'Please try again. Confirm the transaction and make sure you are paying enough gas!',
+      // )
+      console.error(e)
+    } finally {
+      // setPendingTx(false)
+      dispatch(fetchUserTokenData({ chainId, account, additionalTokens: [] }))
+      dispatch(fetchStakingUserData({ chainId, account }))
+    }
+  }
+
 
   const otherValue = useMemo(() => {
     return inputType === InputType.absolute ? (manualPerc ? `${String(manualPerc)}%` : '-') : inputType === InputType.percent ? `${String(inputPercent)}%` : ''
@@ -446,6 +491,7 @@ export default function Staking({
   )
 
   const bottomBox = (_stakeData: DataWithId): JSX.Element => {
+    const actionButtonColor = action === Action.stake ? 'rgba(99, 0, 0, 0.33)' : 'rgba(0, 245, 16, 0.19)'
     return (
       <CardBottom>
         <Flex flexDirection={isMobile ? 'column' : 'row'} alignItems='space-between' justifyContent='space-between' width='100%' >
@@ -455,10 +501,10 @@ export default function Staking({
               variant="secondary"
               width="70%"
               mb="8px"
-              style={{ borderTopRightRadius: '3px', borderBottomRightRadius: '3px', marginLeft: '3px', marginRight: '3px', marginBottom: '5px' }}
+              style={{ borderTopRightRadius: '3px', borderBottomRightRadius: '3px', marginLeft: '3px', marginRight: '3px', marginBottom: '5px', backgroundColor: 'rgba(0, 0, 0, 0.5)', border: 'solid 2px rgba(126, 126, 126, 0.25)' }}
             >
               <Flex flexDirection='column'>
-                <Text>Your Reward</Text>
+                <Text bold marginLeft='-5px' fontSize='12px'>Your Accrued Payout</Text>
                 <Flex flexDirection='row'>
                   <Text marginRight='4px'>{_stakeData.pendingRewardUsd}</Text>
                   <TokenImage token={deserializeToken(_stakeData.reward)} chainId={chainId} width={20} height={20} />
@@ -467,7 +513,7 @@ export default function Staking({
             </Button>
 
             <Button
-              onClick={() => { return null }}
+              onClick={harvestTransactionFunc}
               variant="primary"
               width="30%"
               mb="8px"
@@ -476,29 +522,39 @@ export default function Staking({
               Claim
             </Button>
           </Flex>
-          <Flex flexDirection={isMobile ? 'row' : 'column'} justifyContent='center'>
-            <Text textAlign='center'>Your Pool Share</Text>
+          <Button
+            variant="secondary"
+            width={isMobile ? '100%' : "25%"}
+            mb="8px"
+            style={{ marginLeft: '3px', marginRight: '3px', marginBottom: '5px', backgroundColor: 'rgba(0, 0, 0, 0.5)', border: 'solid 2px rgba(126, 126, 126, 0.25)' }}
+          >
+            <Flex flexDirection={isMobile ? 'row' : 'column'} justifyContent='center'>
 
-            <ShareBox isMobile={isMobile}>
-              {finalAmount?.raw.gt(0) ? (
-                <>
-                  <Text> {currentShare}%</Text>
-                  <ArrowForwardIcon />
-                  <Text color={action === Action.stake ? 'green' : 'red'}> {newShare}%</Text>
-                </>
-              ) : (<Text> {currentShare}%</Text>)}
-            </ShareBox>
-          </Flex>
+              <Text textAlign={isMobile ? 'left' : 'center'} bold marginLeft='-5px' fontSize={isMobile ? '15px' : '12px'} minWidth='150px' >Your Pool Share</Text>
+
+              <ShareBox isMobile={isMobile}>
+                {finalAmount?.raw.gt(0) ? (
+                  <>
+                    <Text> {currentShare}%</Text>
+                    <ArrowForwardIcon />
+                    <Text color={action === Action.stake ? 'green' : 'red'}> {newShare}%</Text>
+                  </>
+                ) : (<Text> {currentShare}%</Text>)}
+              </ShareBox>
+            </Flex>
+          </Button>
           <ActionButton
             variant='primary'
             onClick={() => { return setAction(Action.withdraw === action ? Action.stake : Action.withdraw) }} // {onAttemptToApprove}
-            width={isMobile ? '90%' : "150px"}
+            width={isMobile ? '70%' : "150px"}
             mr="0.5rem"
+            style={{ alignSelf: 'center', marginBottom: '5px', backgroundColor: actionButtonColor, color: 'rgba(101, 101, 101, 0.8)' }}
           >
+            <RefreshIcon color='rgba(101, 101, 101, 0.7)' marginRight='5px' />
             {action === Action.withdraw ? 'Deposit instead' : 'Withdraw instead'}
           </ActionButton>
-        </Flex>
-      </CardBottom>)
+        </Flex >
+      </CardBottom >)
   }
 
 
@@ -529,7 +585,7 @@ export default function Staking({
           <CurrencyInputPanelExpanded
             width='100%'
             balanceText={balanceText}
-            balances={action === Action.stake ? { [_token.address]: new TokenAmount(_token, balances?.[_token.address]?.balance) } :
+            balances={action === Action.stake ? { [_token.address]: new TokenAmount(_token, balances?.[_token.address]?.balance ?? '0') } :
               { [_token.address]: _tokenStaked }}
             isLoading={isLoading}
             chainId={chainId}
@@ -551,7 +607,7 @@ export default function Staking({
             disableCurrencySelect
             id="input to stake"
           />
-          <Flex flexDirection='row'>
+          <Flex flexDirection='row' marginTop='3px'>
             <Slider
               name="maturity-selector"
               min={0}
@@ -570,7 +626,7 @@ export default function Staking({
         </Box>
         <Flex flexDirection='row'>
           {!account ? (
-            <ConnectWalletButton align='center' height='27px' width='100%' />
+            <ConnectWalletButton align='center' height='35px' width='100%' />
           ) : (
             <RowBetween>
               <Button
@@ -582,7 +638,7 @@ export default function Staking({
               >
                 {approval === ApprovalState.PENDING ? (
                   <Dots>Enabling</Dots>
-                ) : approval === ApprovalState.LOADING || approvalRreq === ApprovalState.UNKNOWN ? (
+                ) : approval === ApprovalState.LOADING || approval === ApprovalState.UNKNOWN ? (
                   <Dots>Loading Allowance</Dots>
                 ) : approval === ApprovalState.APPROVED ? (
                   'Enabled'
@@ -618,7 +674,7 @@ export default function Staking({
   }
 
   const renderStakeData = (): JSX.Element => {
-    const props = approvalRreq !== ApprovalState.APPROVED && account ? { borderTopRightRadius: '3px', borderBottomRightRadius: '3px', marginLeft: '3px', marginRight: '3px', marginBottom: '5px', width: '60%' } : {}
+    // const props = approvalRreq !== ApprovalState.APPROVED && account ? { borderTopRightRadius: '3px', borderBottomRightRadius: '3px', marginLeft: '3px', marginRight: '3px', marginBottom: '5px', width: '60%' } : {}
     // used for layout of lock cards
     const indexMax = Object.values(Object.values(stakeData)).length - 1
 
@@ -650,7 +706,7 @@ export default function Staking({
                       />
                     </BoxLeft>
 
-                    <BoxRight selected={data.id === toggledPoolId} isMobile={isMobile}>
+                    <BoxRight selected={data.id === toggledPoolId} isMobile={isMobile} connected={Boolean(account)}>
                       {data.id === toggledPoolId && inputPanel(
                         <TransformText selected={action === Action.stake}>
                           {action === Action.stake ? `Select amount to Stake` : 'Select Amount to Withdraw'}
