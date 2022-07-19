@@ -203,9 +203,9 @@ export const StakingOption: React.FC<StakingOptionsProps> = (
                     )}
                   </Flex>
                   {!isMobile && (<Text mr='10px' ml='10px' fontSize='10px'>{token.name}</Text>)}
-
                 </Flex>
               </Flex>
+              {isMobile && (<Text mr='10px' ml='-20px' fontSize='10px'>{token.name}</Text>)}
             </Flex>
             <Flex flexDirection='column' width='100%' justifyContent='center' alignItems='center' marginTop={hideSelect ? '10px' : ''}>
               <Text mb="4px" bold mr='20px' color={headerColor}>Payout</Text>
