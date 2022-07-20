@@ -127,7 +127,7 @@ export const SREQ: { [chainId: number]: Token } = {
 export const GREQ: { [chainId: number]: Token } = {
   [ChainId.AVAX_TESTNET]: new Token(
     ChainId.AVAX_TESTNET,
-    '0x713732D64F6d2c6FA12eA6642F72F030753f699e',
+    '0x68fFd3D6b7fcd7a2FfAC923112b99A0a7597102f',
     18,
     'GREQ',
     'Governance Requiem',
@@ -482,7 +482,7 @@ const tokens: { [tokenId: string]: TokenEntry } = {
   'greq': {
     symbol: 'GREQ',
     address: {
-      43113: '0x713732D64F6d2c6FA12eA6642F72F030753f699e'
+      43113: '0x68fFd3D6b7fcd7a2FfAC923112b99A0a7597102f'
     },
     name: 'Governance REQ',
     decimals: 18,

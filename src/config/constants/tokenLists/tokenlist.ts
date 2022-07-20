@@ -348,7 +348,7 @@ export const tokenList = {
             {
                 "name": "Governance Requiem",
                 "symbol": "GREQ",
-                "address": "0x713732D64F6d2c6FA12eA6642F72F030753f699e",
+                "address": "0x68fFd3D6b7fcd7a2FfAC923112b99A0a7597102f",
                 "chainId": 43113,
                 "decimals": 18,
                 "logoURI": "https://requiem-finance.s3.eu-west-2.amazonaws.com/logos/tokens/GREQ.png"
