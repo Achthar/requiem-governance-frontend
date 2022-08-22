@@ -150,8 +150,8 @@ export const StakingOption: React.FC<StakingOptionsProps> = (
 ) => {
 
   const [reqValUser, totalReqVal] = useMemo(() => {
-    if (!stakeData || stakeData.reward.symbol.includes('abREQ')) return [0, 0]
-    if (!stakeData.reward.symbol.includes('REQ') && !stakeData.staking.symbol.includes('REQ')) return [0, 0]
+    if (!stakeData || stakeData?.reward?.symbol.includes('abREQ')) return [0, 0]
+    if (!stakeData?.reward?.symbol.includes('REQ') && !stakeData?.staking?.symbol.includes('REQ')) return [0, 0]
     return [Math.round(Number(stakeData.totalReqLockedUser) * reqPrice), Math.round(Number(stakeData.totalStaked) * reqPrice)]
   },
     [stakeData, reqPrice]
@@ -191,21 +191,21 @@ export const StakingOption: React.FC<StakingOptionsProps> = (
               <Text mb="4px" bold mr='10px' color={headerColor}>Asset</Text>
               <Flex flexDirection='row' justifyContent="space-betwen" alignItems='center' width={isMobile ? '100%' : '180px'}>
                 <ImageCont>
-                  <TokenImage token={deserializeToken(token)} chainId={token.chainId} width={35} height={35} />
+                  {token && <TokenImage token={deserializeToken(token)} chainId={token.chainId} width={35} height={35} />}
                 </ImageCont>
                 <Flex flexDirection='column'>
                   <Flex flexDirection='row'>
-                    <Text mb="2px" bold mr='2px' ml='10px'>{token.symbol}</Text>
-                    {token.symbol === 'GREQ' && (
+                    <Text mb="2px" bold mr='2px' ml='10px'>{token?.symbol}</Text>
+                    {token?.symbol === 'GREQ' && (
                       <SSpan as={Link} to={`/${chain}/governance`}>
                         <LinkIcon />
                       </SSpan>
                     )}
                   </Flex>
-                  {!isMobile && (<Text mr='10px' ml='10px' fontSize='10px'>{token.name}</Text>)}
+                  {!isMobile && (<Text mr='10px' ml='10px' fontSize='10px'>{token?.name}</Text>)}
                 </Flex>
               </Flex>
-              {isMobile && (<Text mr='10px' ml='-20px' fontSize='10px'>{token.name}</Text>)}
+              {isMobile && (<Text mr='10px' ml='-20px' fontSize='10px'>{token?.name}</Text>)}
             </Flex>
             <Flex flexDirection='column' width='100%' justifyContent='center' alignItems='center' marginTop={hideSelect ? '10px' : ''}>
               <Text mb="4px" bold mr='20px' color={headerColor}>Payout</Text>

@@ -516,7 +516,8 @@ const tokens: { [tokenId: string]: TokenEntry } = {
   'greq': {
     symbol: 'GREQ',
     address: {
-      43113: '0x68fFd3D6b7fcd7a2FfAC923112b99A0a7597102f'
+      43113: '0x68fFd3D6b7fcd7a2FfAC923112b99A0a7597102f',
+      42261: '0x1b1b369bad41382232cc7b563ff0ad40a24355ca'
     },
     name: 'Governance REQ',
     decimals: 18,
@@ -562,7 +563,8 @@ const tokens: { [tokenId: string]: TokenEntry } = {
     symbol: 'USDC',
     address: {
       43113: '0xca9ec7085ed564154a9233e1e7d8fef460438eea',
-      110001: '0xE59c1Ddf4fAAC4Fa7C8c93d9392d4bBa55383268'
+      110001: '0xE59c1Ddf4fAAC4Fa7C8c93d9392d4bBa55383268',
+      42261: '0x2AD57C6d4144e218c02760640685cdF6CB58669E'
     },
     decimals: 6,
     name: 'USD Coin',

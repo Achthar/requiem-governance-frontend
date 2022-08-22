@@ -25,6 +25,7 @@ export interface UserStakeData extends StakeData {
 export const stakingOptions = (chainId: number): { [id: number]: StakingConfig } => {
 
     const serializedTokens = serializeTokens(chainId)
+
     return {
         0: {
             reward: serializedTokens.usdc,

@@ -121,13 +121,19 @@ export function useStakingInfo(
 
     const { slowRefresh, fastRefresh } = useRefresh()
 
+    const { chainId: stateChainId } = useNetworkState()
+
+
     useEffect(() => {
+        if (chainId !== stateChainId) {
+            dispatch(changeChainIdGov({ newChainId: chainId }))
+        }
         dispatch(fetchStakeData({ chainId }))
         if (account) {
             dispatch(fetchStakeUserDetails({ chainId, account }))
         }
 
-    }, [account, chainId, stakingUserDataLoaded, slowRefresh, dispatch])
+    }, [account, chainId, stakingUserDataLoaded, slowRefresh, dispatch, stateChainId])
 
 
     const { staking } = useGovernanceState(chainId)

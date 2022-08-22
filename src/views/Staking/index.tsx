@@ -174,7 +174,7 @@ export default function Staking({
   useEffect(() => {
     const _chain = getChain(chainId ?? 43113)
     if (chain !== _chain) {
-      history.push(`/${_chain}/governance`)
+      history.push(`/${_chain}/staking`)
     }
 
   },
@@ -202,7 +202,8 @@ export default function Staking({
 
   const {
     staking,
-    stakingDataLoaded
+    stakingDataLoaded,
+    stakingUserDataLoaded
   } = useStakingInfo(chainId, account)
 
 
@@ -215,10 +216,11 @@ export default function Staking({
   const stakeData: DataWithId[] = useMemo(() => {
     if (!stakingDataLoaded) return []
     return Object.keys(staking).map(key => {
+      // if (!staking[key]) return {}
       return {
         id: Number(key),
-        staking: staking[key]?.staking,
-        reward: staking[key]?.reward,
+        staking: staking?.[key]?.staking,
+        reward: staking?.[key]?.reward,
         totalStaked: formatEther(staking[key]?.totalStaked ?? '0'),
         rewardPool: formatEther(staking[key]?.rewardPool ?? '0'),
         rewardDebt: formatEther(staking[key]?.rewardDebt ?? '0'),
@@ -226,12 +228,10 @@ export default function Staking({
         pendingReward: formatEther(staking[key]?.pendingReward ?? '0'),
         rewardPerSecond: staking[key]?.rewardPerSecond ?? '0',
         totalReqLockedUser,
-        pendingRewardUsd: Number(formatEther(BigNumber.from(staking[key]?.pendingReward ?? '0').mul(BigNumber.from(10).pow(18 - staking[key]?.reward.decimals))))
+        pendingRewardUsd: stakingUserDataLoaded ? Number(formatEther(BigNumber.from(staking?.[key]?.pendingReward ?? '0').mul(BigNumber.from(10).pow(18 - staking?.[key]?.reward.decimals)))) : 0
       }
     })
-  }, [staking, stakingDataLoaded, totalReqLockedUser])
-
-  // useEffect(() => { console.log("STAKE", stakeData) }, [stakeData])
+  }, [staking, stakingDataLoaded, totalReqLockedUser, stakingUserDataLoaded])
 
   const now = Math.round((new Date()).getTime() / 1000);
 
