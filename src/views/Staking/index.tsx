@@ -386,7 +386,7 @@ export default function Staking({
 
 
   const [buttonText, titleText] = useMemo(() => {
-    return action === Action.stake ? [`Stake ${currentStakeData?.staking?.symbol}`, 'Staked!'] : [`Withdraw ${currentStakeData?.staking?.symbol}`, 'Withdrawl complete!']
+    return action === Action.stake ? [`Stake ${currentStakeData?.staking?.symbol}`, 'Staked!'] : [`Withdraw ${currentStakeData?.staking?.symbol}`, 'withdrawal complete!']
   },
     [action, currentStakeData]
   )
@@ -402,7 +402,7 @@ export default function Staking({
   const transactWithStaking = async () => {
     if (!chainId || !library || !account) return
 
-    // // we have to differentiate between astaking and withdrawls
+    // // we have to differentiate between astaking and withdrawals
     if (action === Action.stake) {
       await onDeposit(finalAmount.toBigNumber().toHexString())
 

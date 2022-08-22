@@ -3,7 +3,7 @@ import { createAsyncThunk } from '@reduxjs/toolkit'
 import { BigNumber } from 'ethers'
 import { getAddress } from 'ethers/lib/utils';
 import multicall from 'utils/multicall';
-import stableSwapAVAX from 'config/abi/avax/RequiemStableSwap.json'
+import stableSwapAVAX from 'config/abi/oasis/StablePool.json'
 import erc20 from 'config/abi/erc20.json'
 import { stableSwapInitialData } from 'config/constants/stablePools';
 import { Fraction } from '@requiemswap/sdk';
@@ -60,22 +60,18 @@ export const fetchStablePoolData = createAsyncThunk(
         name: 'getA',
         params: []
       },
-    ]
-
-    const [multipliers, swapStorage, tokenBalances, A] =
-      await multicall(chainId, stableSwapAVAX, calls)
-
-
-    // calls from pair used for pricing
-    const callsLp = [
-      // total supply of LP token
       {
-        address: swapStorage.lpAddress ?? pool.lpAddress,
+        address: poolAddress,
         name: 'totalSupply',
+        params: []
       },
     ]
 
-    const [supply] = await multicall(chainId, erc20, callsLp)
+    const [multipliers, swapStorage, tokenBalances, A, supply] = await multicall(
+      chainId,
+      stableSwapAVAX,
+      calls
+    )
 
     return {
       ...pool,

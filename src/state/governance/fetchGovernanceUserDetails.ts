@@ -59,9 +59,7 @@ export const fetchGovernanceUserDetails = createAsyncThunk(
       },
     ]
 
-    const [locks, balance, allowance, indexes] =
-      await multicall(chainId, redRequiemAvax, calls)
-
+    const [locks, balance, allowance, indexes] = await multicall(chainId, redRequiemAvax, calls)
 
     return {
       locks: Object.assign(

@@ -26,14 +26,15 @@ export interface StablePoolUserData {
 
 // simple allowance fetch together with balances in multicall
 export const fetchPoolUserAllowancesAndBalances = async (chainId: number, account: string, poolsToFetch: PoolConfig[]): Promise<StablePoolUserData> => {
+  if (poolsToFetch.length === 0) return { allowances: [], balances: [] }
 
   const callsAllowance = poolsToFetch.map((pool) => {
-    const lpContractAddress = pool.lpAddress
+    const lpContractAddress = pool.address
     return { address: lpContractAddress, name: 'allowance', params: [account, pool.address] }
   })
 
   const callsLpBalances = poolsToFetch.map((pool) => {
-    const lpContractAddress = pool.lpAddress
+    const lpContractAddress = pool.address
     return {
       address: lpContractAddress,
       name: 'balanceOf',

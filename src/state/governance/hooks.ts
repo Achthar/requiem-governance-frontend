@@ -2,8 +2,9 @@ import { useCallback, useEffect, useMemo } from 'react'
 import { useDispatch, useSelector } from 'react-redux'
 import useRefresh from 'hooks/useRefresh'
 import { SerializedToken } from 'config/constants/types'
+import { useNetworkState } from 'state/globalNetwork/hooks'
 import { fetchGovernanceData } from './fetchGovernanceData'
-import { typeInput, typeInputTime } from './actions'
+import { changeChainIdGov, typeInput, typeInputTime } from './actions'
 import { AppDispatch, AppState, useAppDispatch } from '../index'
 import { fetchGovernanceUserDetails } from './fetchGovernanceUserDetails'
 import { fetchStakeData } from './fetchStakeData'
@@ -68,13 +69,18 @@ export function useGovernanceInfo(
 
     const { slowRefresh } = useRefresh()
 
+    const { chainId: stateChainId } = useNetworkState()
+
     useEffect(() => {
+        if (chainId !== stateChainId) {
+            dispatch(changeChainIdGov({ newChainId: chainId }))
+        }
         dispatch(fetchGovernanceData({ chainId }))
-        if (!userDataLoaded && account) {
+        if (account) {
             dispatch(fetchGovernanceUserDetails({ chainId, account }))
         }
 
-    }, [account, chainId, userDataLoaded, slowRefresh, dispatch])
+    }, [account, chainId, userDataLoaded, slowRefresh, dispatch, stateChainId])
 
     const { balance, locks, staked, supplyABREQ, supplyGREQ, maxtime, lockedInGovernance } = useGovernanceState(chainId)
 

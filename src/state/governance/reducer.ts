@@ -1,7 +1,7 @@
 import { createReducer } from '@reduxjs/toolkit'
 import { StakeData, stakingOptions } from 'config/constants/stakingOptions'
 import { SerializedBigNumber } from 'state/types'
-import { typeInput, typeInputTime } from './actions'
+import { changeChainIdGov, typeInput, typeInputTime } from './actions'
 import { fetchGovernanceData } from './fetchGovernanceData'
 import { fetchGovernanceUserDetails } from './fetchGovernanceUserDetails'
 import { fetchStakeData } from './fetchStakeData'
@@ -51,12 +51,34 @@ const initialState: GovernanceState = {
       lockedInGovernance: '0',
       maxtime: 100,
       staking: stakingOptions(43113)
+    },
+    42261: {
+      publicDataLoaded: false,
+      userDataLoaded: false,
+      stakingDataLoaded: false,
+      stakingUserDataLoaded: false,
+      balance: '0',
+      staked: '0',
+      locks: {},
+      supplyABREQ: '0',
+      supplyGREQ: '0',
+      lockedInGovernance: '0',
+      maxtime: 100,
+      staking: stakingOptions(42261)
     }
   }
 }
 
 export default createReducer<GovernanceState>(initialState, (builder) =>
   builder
+    .addCase(changeChainIdGov, (state, action) => {
+      state.referenceChainId = action.payload.newChainId
+      state.data[state.referenceChainId].publicDataLoaded = false;
+      state.data[state.referenceChainId].stakingDataLoaded = false;
+      state.data[state.referenceChainId].stakingUserDataLoaded = false;
+      state.data[state.referenceChainId].userDataLoaded = false;
+      state.data[state.referenceChainId].locks = {};
+    })
     .addCase(fetchGovernanceUserDetails.pending, state => {
       // state.data[state.referenceChainId].dataLoaded = false;
     })

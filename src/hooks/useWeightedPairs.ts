@@ -7,9 +7,9 @@ import { pack, keccak256 } from '@ethersproject/solidity'
 import { FACTORY_ADDRESS } from 'config/constants'
 import { Interface } from '@ethersproject/abi'
 // import { useNetworkState } from 'state/globalNetwork/hooks'
-import { DAI, REQT } from 'config/constants/tokens'
+import { ABREQ, DAI, REQT } from 'config/constants/tokens'
 import { useMultipleContractSingleData, useSingleContractMultipleData } from 'state/multicall/hooks'
-import { useWeightedFactoryContract, useWeightedFormulaContract } from './useContract'
+import { useWeightedFactoryContract } from './useContract'
 import { wrappedCurrency } from '../utils/wrappedCurrency'
 // import { getWeightedPairFactory } from '../utils/contractHelpers'
 
@@ -88,7 +88,7 @@ export function useWeightedPairs(
       if (loading) return [WeightedPairState.LOADING, null]
       if (!tokenA || !tokenB || tokenA.equals(tokenB)) return [WeightedPairState.INVALID, null]
       if (!res) return [WeightedPairState.NOT_EXISTS, null]
-      const {  reserve0, reserve1, vReserve0, vReserve1 } = res.reserveData
+      const { reserve0, reserve1, vReserve0, vReserve1 } = res.reserveData
       const [token0, token1] = tokenA.sortsBefore(tokenB) ? [tokenA, tokenB] : [tokenB, tokenA]
       const weight0 = tokenA.sortsBefore(tokenB) ? BigNumber.from(weightA[i]) : BigNumber.from(100 - weightA[i])
       return [
@@ -139,7 +139,7 @@ export function useGetWeightedPairs(currencies: [Currency | undefined, Currency 
     chainId,
     factoryContract,
     'getPairs',
-    tokens.map(tokenPair => [tokenPair[0]?.address ?? REQT[chainId].address, tokenPair[1]?.address ?? DAI[chainId].address]),
+    tokens.map(tokenPair => [tokenPair[0]?.address ?? ABREQ[chainId].address, tokenPair[1]?.address ?? DAI[chainId].address]),
     // useBlock
   )
 

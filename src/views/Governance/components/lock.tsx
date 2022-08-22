@@ -179,7 +179,7 @@ const LockCard: React.FC<LockCardProps> = ({
             width="100%"
             mr="0.5rem"
           >
-            Approve withdrawl
+            Approve withdrawal
           </ApprovalButton>
 
         ) : (

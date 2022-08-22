@@ -1,15 +1,12 @@
 /** eslint no-empty-interface: 0 */
 import { createAsyncThunk, createSlice } from '@reduxjs/toolkit'
-import { ethers, BigNumber, BigNumberish } from 'ethers'
 import { getAddress } from 'ethers/lib/utils';
-import { addresses } from 'config/constants/contracts';
 import multicall from 'utils/multicall';
 import weightedPoolAVAX from 'config/abi/avax/WeightedPool.json'
+import weightedPoolROSE from 'config/abi/oasis/WeightedPool.json'
 import erc20 from 'config/abi/erc20.json'
 import { weightedSwapInitialData } from 'config/constants/weightedPool';
-import { BondAssetType } from 'config/constants/types';
-import { Fraction, TokenAmount } from '@requiemswap/sdk';
-import { BondsState, Bond, PoolConfig, SerializedWeightedPool } from '../types'
+import { PoolConfig, SerializedWeightedPool } from '../types'
 
 interface PoolRequestData {
   chainId: number
@@ -18,7 +15,7 @@ interface PoolRequestData {
 
 
 export const fetchWeightedPoolData = createAsyncThunk(
-  "stablePools/fetchWeightedPoolData",
+  "weightedPools/fetchWeightedPoolData",
   async ({ pool, chainId }: PoolRequestData): Promise<SerializedWeightedPool> => {
 
     // fallback if chainId is changed
@@ -53,22 +50,18 @@ export const fetchWeightedPoolData = createAsyncThunk(
         name: 'getTokenWeights',
         params: []
       },
-    ]
-
-    const [multipliers, swapStorage, tokenBalances, tokenWeights] =
-      await multicall(chainId, weightedPoolAVAX, calls)
-
-
-    // calls from pair used for pricing
-    const callsLp = [
-      // total supply of LP token
       {
-        address: swapStorage.lpAddress ?? pool.lpAddress,
+        address: poolAddress,
         name: 'totalSupply',
       },
     ]
 
-    const [supply] = await multicall(chainId, erc20, callsLp)
+    const [multipliers, swapStorage, tokenBalances, tokenWeights, supply] =
+      await multicall(chainId, chainId === 43113 ? [...weightedPoolAVAX, ...erc20] : weightedPoolROSE, calls)
+
+
+
+
 
     return {
       ...pool,
@@ -87,7 +80,7 @@ export const fetchWeightedPoolData = createAsyncThunk(
         adminFee: swapStorage.adminFee.toString(),
 
       },
-      lpTotalSupply: supply[0].toString(),
+      lpTotalSupply: supply[0].toString()
     }
   }
 );

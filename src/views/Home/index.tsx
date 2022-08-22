@@ -33,7 +33,7 @@ const Home: React.FC = () => {
 
   const steps = [
     'You can get abREQ on our exchange or by selling assets to our treasury using bonds',
-    'Lock abREQ for some time to mint GREQ. Be careful with considerng for how long you wan to lock as there is a penalty on early withdrawls.',
+    'Lock abREQ for some time to mint GREQ. Be careful with considerng for how long you wan to lock as there is a penalty on early withdrawals.',
     'Stake GREQ to earn rewards paid out in valuable assets such as USDC or WETH.',
     'Maximize and use your voting power to impact the direction the Requiem Finance Protocol will go.'
   ]

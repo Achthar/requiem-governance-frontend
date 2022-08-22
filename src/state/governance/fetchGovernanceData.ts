@@ -64,9 +64,7 @@ export const fetchGovernanceData = createAsyncThunk(
       },
     ]
 
-    const [supplyABREQ, supplyGREQ, maxtime, locked] =
-      await multicall(chainId, redRequiemAvax, calls)
-
+    const [supplyABREQ, supplyGREQ, maxtime, locked] = await multicall(chainId, redRequiemAvax, calls)
 
     return {
       supplyABREQ: supplyABREQ.toString(),

@@ -16,7 +16,7 @@ import { tryParseAmount, tryParseTokenAmount } from 'utils/numberFormatter'
 import { getGovernanceRequiemAddress } from 'utils/addressHelpers'
 import Row from 'components/Row'
 import getChain from 'utils/getChain'
-import { useGetRawWeightedPairsState } from 'hooks/useGetWeightedPairsState'
+import { useGetRawWeightedPairsState, useGetWeightedPairsPricerState } from 'hooks/useGetWeightedPairsState'
 import { priceAssetBackedRequiem } from 'utils/poolPricer'
 import useRefresh from 'hooks/useRefresh'
 import useDebouncedChangeHandler from 'hooks/useDebouncedChangeHandler'
@@ -173,9 +173,19 @@ export default function Governance({
 
   const lockedAmount = useMemo(() => { return new TokenAmount(tokenA, lock?.amount ?? '0') }, [lock, tokenA])
 
-  const [parsedAmounts, parsedMultiplier] = useMemo(() => {
+  const [parsedAmounts, inputParsed] = useMemo(() => {
     const input = BigNumber.from(tryParseTokenAmount(inputValue, tokenA)?.raw.toString() ?? 0)
     let voting: BigNumber
+    if (input.eq(0)) {
+      return [
+        {
+          [Field.CURRENCY_A]: tryParseTokenAmount('0', tokenA),
+          [Field.CURRENCY_B]: new TokenAmount(tokenB, '0')
+        },
+        input
+      ]
+    }
+    
     try {
       voting = calculateVotingPower(action, now, input, selectedMaturity, lock, locks, BigNumber.from(supplyABREQ), BigNumber.from(supplyGREQ)).mul(input).div(ONE_18)
     } catch (Error) {
@@ -218,8 +228,6 @@ export default function Governance({
 
   // tx sending
   const addTransaction = useTransactionAdder()
-
-
 
   const buttonText = action === Action.createLock ? 'Create Lock' : action === Action.increaseTime ? 'Increase Time' : 'Increase Amount'
 
@@ -312,7 +320,7 @@ export default function Governance({
             >
               {approvalRreq === ApprovalState.LOADING || approvalRreq === ApprovalState.UNKNOWN ? (
                 <Dots>Fetching Allowance</Dots>
-              ) : 'Approve Withdrawls'}
+              ) : 'Approve withdrawals'}
             </Button>)}
 
         </Flex>
