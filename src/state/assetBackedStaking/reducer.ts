@@ -36,9 +36,9 @@ export interface Claim {
 
 
 export interface UserData {
-    warmupInfo: Claim,
-    sReqBalance: SerializedBigNumber,
-    gReqBalance: SerializedBigNumber
+  warmupInfo: Claim,
+  sReqBalance: SerializedBigNumber,
+  gReqBalance: SerializedBigNumber
 }
 
 
@@ -58,8 +58,11 @@ export interface AssetBackedStakingState {
   }
 }
 
+const initialChainId = Number(process?.env?.REACT_APP_DEFAULT_CHAIN_ID)
+console.log("PROCESS", process)
+
 const initialState: AssetBackedStakingState = {
-  referenceChainId: 43113,
+  referenceChainId: initialChainId,
   staking: {
     43113: {
       implemented: true,
@@ -83,9 +86,9 @@ const initialState: AssetBackedStakingState = {
         distribute: '0'
       },
       userData: {
-          warmupInfo: { deposit: '0', gons: '0', expiry: 0, lock: false },
-          sReqBalance: '0',
-          gReqBalance: '0'
+        warmupInfo: { deposit: '0', gons: '0', expiry: 0, lock: false },
+        sReqBalance: '0',
+        gReqBalance: '0'
       },
       userDataLoaded: false,
       stakedReqLoaded: false,

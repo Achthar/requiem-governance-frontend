@@ -35,8 +35,10 @@ export interface GovernanceState {
   }
 }
 
+const initialChainId = Number(process.env.REACT_APP_DEFAULT_CHAIN_ID)
+
 const initialState: GovernanceState = {
-  referenceChainId: 43113,
+  referenceChainId: initialChainId,
   data: {
     43113: {
       publicDataLoaded: false,

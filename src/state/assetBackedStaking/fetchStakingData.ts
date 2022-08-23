@@ -1,16 +1,8 @@
 /** eslint no-empty-interface: 0 */
 import { createAsyncThunk } from '@reduxjs/toolkit'
-import { ethers, BigNumber } from 'ethers'
 import multicall from 'utils/multicall';
 import abReqStaking from 'config/abi/avax/Staking.json'
 import { getAssetBackedStakingAddress, getGovernanceStakingAddress } from 'utils/addressHelpers';
-import { SerializedBigNumber } from 'state/types';
-import { getAssetBackedStakingContract } from 'utils/contractHelpers';
-
-
-const E_NINE = BigNumber.from('1000000000')
-const E_EIGHTEEN = BigNumber.from('1000000000000000000')
-
 
 export interface AssetBackedStakingRequest {
   chainId: number
@@ -61,8 +53,7 @@ export const fetchStakingData = createAsyncThunk(
       },
     ]
 
-    const [epoch, index, secondsToNextEpoch] =
-      await multicall(chainId, abReqStaking, calls)
+    const [epoch, index, secondsToNextEpoch] = await multicall(chainId, abReqStaking, calls)
 
 
 
