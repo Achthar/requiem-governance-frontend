@@ -3,6 +3,7 @@ import { getAddress } from 'ethers/lib/utils'
 import { SerializedBigNumber } from 'state/types'
 import multicall from 'utils/multicall'
 import { OracleConfig, oracleConfig } from 'config/constants/oracles'
+import { FALLBACK_CHAINID } from 'config/constants'
 
 
 
@@ -22,7 +23,7 @@ export interface OracleState {
   }
 }
 
-const initialChainId = Number(process.env.REACT_APP_DEFAULT_CHAIN_ID)
+const initialChainId = Number(process?.env?.REACT_APP_DEFAULT_CHAIN_ID ?? FALLBACK_CHAINID)
 
 const initialState = {
   referenceChainId: initialChainId,

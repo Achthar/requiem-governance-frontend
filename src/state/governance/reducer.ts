@@ -1,4 +1,5 @@
 import { createReducer } from '@reduxjs/toolkit'
+import { FALLBACK_CHAINID } from 'config/constants'
 import { StakeData, stakingOptions } from 'config/constants/stakingOptions'
 import { SerializedBigNumber } from 'state/types'
 import { changeChainIdGov, typeInput, typeInputTime } from './actions'
@@ -35,7 +36,7 @@ export interface GovernanceState {
   }
 }
 
-const initialChainId = Number(process.env.REACT_APP_DEFAULT_CHAIN_ID)
+const initialChainId = Number(process?.env?.REACT_APP_DEFAULT_CHAIN_ID ?? FALLBACK_CHAINID)
 
 const initialState: GovernanceState = {
   referenceChainId: initialChainId,

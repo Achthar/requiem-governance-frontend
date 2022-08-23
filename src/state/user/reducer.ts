@@ -26,7 +26,7 @@ import {
 import { GAS_PRICE_GWEI } from './hooks/helpers'
 import { fetchUserNetworkCcyBalance } from './fetchUserNetworkCcyBalance'
 import { fetchUserTokenData } from './fetchUserTokenBalances'
-import { INITIAL_ALLOWED_SLIPPAGE, DEFAULT_DEADLINE_FROM_NOW } from '../../config/constants'
+import { INITIAL_ALLOWED_SLIPPAGE, DEFAULT_DEADLINE_FROM_NOW, FALLBACK_CHAINID } from '../../config/constants'
 import { updateVersion } from '../global/actions'
 import { FarmStakedOnly, UserState } from './types'
 
@@ -59,7 +59,7 @@ function pairKey(token0Address: string, token1Address: string) {
   return `${token0Address}-${token1Address}`
 }
 
-const initialChainId = Number(process.env.REACT_APP_DEFAULT_CHAIN_ID)
+const initialChainId = Number(process?.env?.REACT_APP_DEFAULT_CHAIN_ID ?? FALLBACK_CHAINID)
 
 export const initialState: UserState = {
   referenceChainId: initialChainId,
