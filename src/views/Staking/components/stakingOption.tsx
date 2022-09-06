@@ -150,7 +150,7 @@ export const StakingOption: React.FC<StakingOptionsProps> = (
 ) => {
 
   const [reqValUser, totalReqVal] = useMemo(() => {
-    if (!stakeData || stakeData?.reward?.symbol.includes('abREQ')) return [0, 0]
+    if (!stakeData || stakeData?.reward?.symbol.includes('ABREQ')) return [0, 0]
     if (!stakeData?.reward?.symbol.includes('REQ') && !stakeData?.staking?.symbol.includes('REQ')) return [0, 0]
     return [Math.round(Number(stakeData.totalReqLockedUser) * reqPrice), Math.round(Number(stakeData.totalStaked) * reqPrice)]
   },
