@@ -23,7 +23,7 @@ const Vote = lazy(() => import('./views/Voting'))
 const NotFound = lazy(() => import('./views/NotFound'))
 const Governance = lazy(() => import('./views/Governance'))
 const Staking = lazy(() => import('./views/Staking'))
-const Liquidity = lazy(() => import('./views/Pool/poolList'))
+// const Liquidity = lazy(() => import('./views/Pool/poolList'))
 
 // This config is required for number formatting
 BigNumber.config({
@@ -52,7 +52,7 @@ const App: React.FC = () => {
             <Home />
           </Route>
           {/* Using this format because these components use routes injected props. We need to rework them with hooks */}
-          <Route exact strict path="/:chain/liquidity" component={Liquidity} />
+          {/* <Route exact strict path="/:chain/liquidity" component={Liquidity} /> */}
           <Route exact path="/:chain/voting" component={Vote} />
           <Route exact path="/:chain/governance" component={Governance} />
           <Route exact path="/:chain/staking" component={Staking} />
