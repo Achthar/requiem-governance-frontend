@@ -83,7 +83,7 @@ export type SupportedL2ChainId = typeof L2_CHAIN_IDS[number]
 
 // a list of tokens by chain
 type ChainTokenList = {
-  readonly [chainId in ChainId]: Token[]
+  readonly [chainId in ChainId]?: Token[]
 }
 
 export interface L1ChainInfo {
@@ -141,7 +141,7 @@ export const CHAIN_INFO: ChainInfo = {
     explorer: 'https://bscscan.com/',
     infoLink: 'https://info.uniswap.org/#/',
     label: 'Binance',
-    logoUrl: 'https://requiem-finance.s3.eu-west-2.amazonaws.com/logos/networks/BNB.svg',
+    logoUrl: 'https://cryptologos.cc/logos/bnb-bnb-logo.svg?v=023',
     nativeCurrency: { name: 'BNB', symbol: 'BNB', decimals: 18 },
     rpcUrls: ['https://bsc-dataseed1.ninicoin.io', 'https://bsc-dataseed1.defibit.io',
       'https://bsc-dataseed.binance.org', 'https://bsc-dataseed2.binance.org/',
@@ -153,7 +153,7 @@ export const CHAIN_INFO: ChainInfo = {
     explorer: 'https://testnet.bscscan.com/',
     infoLink: 'https://info.uniswap.org/#/',
     label: 'Binance Testnet',
-    logoUrl: 'https://requiem-finance.s3.eu-west-2.amazonaws.com/logos/networks/BNB.svg',
+    logoUrl: 'https://cryptologos.cc/logos/bnb-bnb-logo.svg?v=023',
     nativeCurrency: { name: 'BNB', symbol: 'BNB', decimals: 18 },
     rpcUrls: ['https://data-seed-prebsc-1-s1.binance.org:8545/', 'https://data-seed-prebsc-2-s1.binance.org:8545/',
       'https://data-seed-prebsc-1-s2.binance.org:8545/'],
@@ -164,7 +164,7 @@ export const CHAIN_INFO: ChainInfo = {
     explorer: 'https://explorer.avax.network/',
     infoLink: 'https://www.avax.network/',
     label: 'Avalanche',
-    logoUrl: 'https://requiem-finance.s3.eu-west-2.amazonaws.com/logos/networks/AVAX.svg',
+    logoUrl: 'https://cryptologos.cc/logos/avalanche-avax-logo.svg?v=023',
     rpcUrls: ['https://api.avax.network/ext/bc/C/rpc'],
     nativeCurrency: { name: 'Avalanche', symbol: 'AVAX', decimals: 18 },
   },
@@ -175,7 +175,7 @@ export const CHAIN_INFO: ChainInfo = {
     infoLink: 'https://www.avax.network/',
     label: 'Avalanche Testnet',
     rpcUrls: ['https://api.avax-test.network/ext/bc/C/rpc'],
-    logoUrl: 'https://requiem-finance.s3.eu-west-2.amazonaws.com/logos/networks/AVAX.svg',
+    logoUrl: 'https://cryptologos.cc/logos/avalanche-avax-logo.svg?v=023',
     nativeCurrency: { name: 'Avalanche', symbol: 'AVAX', decimals: 18 },
     faucet: 'https://faucet.avax-test.network/'
   },
@@ -186,7 +186,7 @@ export const CHAIN_INFO: ChainInfo = {
     explorer: 'https://polygonscan.com/',
     infoLink: 'https://info.uniswap.org/#/optimism',
     label: 'Polygon',
-    logoUrl: 'https://requiem-finance.s3.eu-west-2.amazonaws.com/logos/networks/MATIC.svg',
+    logoUrl: 'https://cryptologos.cc/logos/polygon-matic-logo.svg?v=023',
     nativeCurrency: { name: 'Polygon', symbol: 'MATIC', decimals: 18 },
     rpcUrls: ['https://rpc-mainnet.maticvigil.com'],
     statusPage: 'https://optimism.io/status',
@@ -199,7 +199,7 @@ export const CHAIN_INFO: ChainInfo = {
     infoLink: 'https://info.uniswap.org/#/optimism',
     label: 'Polygon Mumbai',
     rpcUrls: ['https://rpc-mumbai.matic.today'],
-    logoUrl: 'https://requiem-finance.s3.eu-west-2.amazonaws.com/logos/networks/MATIC.svg',
+    logoUrl: 'https://cryptologos.cc/logos/polygon-matic-logo.svg?v=023',
     nativeCurrency: { name: 'Polygon', symbol: 'MATIC', decimals: 18 },
     statusPage: 'https://optimism.io/status',
     faucet: 'https://faucet.polygon.technology/'
@@ -212,7 +212,7 @@ export const CHAIN_INFO: ChainInfo = {
     infoLink: 'https://oasisprotocol.org/',
     label: 'Oasis Mainnet',
     rpcUrls: ['https://emerald.oasis.dev/'],
-    logoUrl: 'https://requiem-finance.s3.eu-west-2.amazonaws.com/logos/networks/ROSE.svg',
+    logoUrl: 'https://cryptologos.cc/logos/oasis-network-rose-logo.svg?v=023',
     nativeCurrency: { name: 'Oasis', symbol: 'ROSE', decimals: 18 },
     // statusPage: 'https://optimism.io/status',
   },
@@ -224,7 +224,7 @@ export const CHAIN_INFO: ChainInfo = {
     infoLink: 'https://oasisprotocol.org/',
     label: 'Oasis Testnet',
     rpcUrls: ['https://testnet.emerald.oasis.dev/'],
-    logoUrl: 'https://requiem-finance.s3.eu-west-2.amazonaws.com/logos/networks/ROSE.svg',
+    logoUrl: 'https://cryptologos.cc/logos/oasis-network-rose-logo.svg?v=023',
     nativeCurrency: { name: 'Oasis', symbol: 'ROSE', decimals: 18 },
     faucet: 'https://faucet.testnet.oasis.dev/?'
     // statusPage: 'https://optimism.io/status',
@@ -237,8 +237,21 @@ export const CHAIN_INFO: ChainInfo = {
     infoLink: 'https://oasisprotocol.org/',
     label: 'Quarkchain Dev S0',
     rpcUrls: ['http://eth-jrpc.devnet.quarkchain.io:39900'],
-    logoUrl: 'https://requiem-finance.s3.eu-west-2.amazonaws.com/logos/networks/QKC.svg',
+    logoUrl: 'https://cryptologos.cc/logos/quarkchain-qkc-logo.svg?v=023',
     nativeCurrency: { name: 'Quarkchain Dev S0', symbol: 'QKC', decimals: 10 },
+    // statusPage: 'https://optimism.io/status',
+  },
+  [ChainId.TT_TESTNET]: {
+    blockWaitMsBeforeWarning: ms`10m`,
+    // bridge: 'https://gateway.optimism.io/',
+    docs: 'https://docs.developers.thundercore.com/network-details/thundercore-testnet',
+    explorer: 'https://explorer-testnet.thundercore.com/',
+    infoLink: 'https://docs.developers.thundercore.com/',
+    label: 'Thunder Testnet',
+    rpcUrls: ['https://testnet-rpc.thundercore.com'],
+    logoUrl: 'https://cryptologos.cc/logos/thorchain-rune-logo.svg?v=023',
+    nativeCurrency: { name: 'Thunder Core Token', symbol: 'TT', decimals: 18 },
+    faucet: 'https://faucet-testnet.thundercore.com/'
     // statusPage: 'https://optimism.io/status',
   },
 }

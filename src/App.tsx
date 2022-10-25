@@ -13,6 +13,8 @@ import history from './routerHistory'
 import CustomNav from './CustomMenu'
 import Balances from './Balances'
 import GlobalStyle from './style/Global'
+import bg from './assets/fractal2.0.mp4'
+import bgStatic from './assets/fractalStatic.jpg'
 
 // Route-based code splitting
 // Only pool is included in the main bundle because of it's the most visited page
@@ -38,8 +40,8 @@ const App: React.FC = () => {
       <ResetCSS />
       <GlobalStyle />
       {/* <CustomMenu /> */}
-      <video id="background-video" autoPlay loop muted poster="https://requiem-finance.s3.eu-west-2.amazonaws.com/background/fractalStatic.jpg">
-        <source src="https://requiem-finance.s3.eu-west-2.amazonaws.com/background/fractal2.0.mp4" type="video/mp4" />
+      <video id="background-video" autoPlay loop muted poster={bgStatic}>
+        <source src={bg} type="video/mp4" />
       </video>
       <SuspenseWithChunkError fallback={<PageLoader />}>
         <Popups />
